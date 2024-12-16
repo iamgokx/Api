@@ -60,7 +60,7 @@ const addIssueVote = async (req, res) => {
           if (existingVoteResults.length > 0) {
             const existingVote = existingVoteResults[0].type;
             if (existingVote == voteType) {
-              
+
               const sqlRemoveExistingVote = `DELETE 
                 FROM citizen_issues_votes 
                 WHERE citizen_id = ? AND issue_id = ?;`;
@@ -80,7 +80,7 @@ const addIssueVote = async (req, res) => {
                 }
               });
             } else {
-              
+
               const sqlChangeVoteType = `UPDATE citizen_issues_votes 
                 SET type = ?, date_time_created = CURRENT_TIMESTAMP 
                 WHERE citizen_id = ? AND issue_id = ?;`;
@@ -101,7 +101,7 @@ const addIssueVote = async (req, res) => {
               });
             }
           } else {
-            
+
             const sqlAddNewVote = `INSERT INTO citizen_issues_votes (citizen_id, issue_id, type, date_time_created)
             VALUES (?, ?, ?, CURRENT_TIMESTAMP);`;
 
