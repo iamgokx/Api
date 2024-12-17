@@ -1,13 +1,13 @@
 const db = require('../../models/database');
 const aadhardb = require('../../models/aadharDatabase');
-//handle cases where auto generated fiels were not available and user manually enters data, and vice versa 
+require('dotenv').config()
 const verifyUserSignup = (req, res) => {
   try {
     const details = req.body;
     console.log(details);
-    const [first_name, last_name] = details.name.split(' ');
+
     const sql = 'SELECT * FROM users WHERE full_name = ? AND state = ? AND aadhaar_number = ? AND phone_number = ?';
-    aadhardb.execute(sql, [details.name, details.generatedState, details.aadharCardNumber, details.phoneNumber], (error, results) => {
+    aadhardb.execute(sql, [details.name, process.env.STATE, details.aadharCardNumber, details.phoneNumber], (error, results) => {
       if (error) {
         console.error('Error verifying Aadhar details:', error);
         return res.status(500).json({ message: 'Internal server error' });
@@ -38,12 +38,12 @@ const verifyUserSignup = (req, res) => {
 
             const sql = `
             INSERT INTO users 
-              (email, first_name, last_name, user_password, phone_number, user_type) 
+              (email, full_name,user_password, phone_number, user_type) 
             VALUES 
-              (?, ?, ?, ?, ?, ?)
+              (?, ?, ?, ?, ?)
           `;
 
-            db.query(sql, [details.email, first_name, last_name, details.password, details.phoneNumber, 'citizen'], (error, results) => {
+            db.query(sql, [details.email, details.name, details.password, details.phoneNumber, 'citizen'], (error, results) => {
               if (error) {
                 console.log('Error creating user account:', error);
 
@@ -51,7 +51,7 @@ const verifyUserSignup = (req, res) => {
 
               if (results.affectedRows > 0) {
                 const sqlCheckPincode = "SELECT COUNT(*) AS count FROM citizen_pincode WHERE pincode = ?";
-                db.query(sqlCheckPincode, [details.generatedPincode], (err, result) => {
+                db.query(sqlCheckPincode, [details.pincode], (err, result) => {
                   if (err) {
                     console.log('Error checking pincode existence: ', err);
 
@@ -59,7 +59,7 @@ const verifyUserSignup = (req, res) => {
 
                   if (result[0].count === 0) {
                     const sqlInsertPincode = "INSERT INTO citizen_pincode (pincode, city, state) VALUES (?, ?, ?)";
-                    db.query(sqlInsertPincode, [details.generatedPincode, details.generatedCity, details.generatedState], (insertErr, insertResult) => {
+                    db.query(sqlInsertPincode, [details.pincode, details.city, details.state], (insertErr, insertResult) => {
                       if (insertErr) {
                         console.log('Error adding pincode to citizen_pincode table: ', insertErr);
 
@@ -67,8 +67,8 @@ const verifyUserSignup = (req, res) => {
 
                       if (insertResult.affectedRows > 0) {
                         console.log('Pincode added to citizen_pincode table');
-                        const sqlInsertCitizen = "INSERT INTO citizens (aadhar_number, status, latitude, longitude, locality, pincode) VALUES (?, ?, ?, ?, ?, ?)";
-                        db.query(sqlInsertCitizen, [details.aadharCardNumber, 'approved', details.latitude, details.longitude, details.locality, details.generatedPincode], (insertErr, insertResult) => {
+                        const sqlInsertCitizen = "INSERT INTO citizens (aadhar_number, status, locality, pincode) VALUES (?, ?, ?, ?)";
+                        db.query(sqlInsertCitizen, [details.aadharCardNumber, 'approved', details.locality, details.pincode], (insertErr, insertResult) => {
                           if (insertErr) {
                             console.log('Error adding citizen: ', insertErr);
                             return false;
@@ -104,8 +104,8 @@ const verifyUserSignup = (req, res) => {
                     console.log('Pincode already exists, proceeding with citizen insertion');
 
 
-                    const sqlInsertCitizen = "INSERT INTO citizens (aadhar_number, status, latitude, longitude, locality, pincode) VALUES (?, ?, ?, ?, ?, ?)";
-                    db.query(sqlInsertCitizen, [details.aadharCardNumber, 'approved', details.latitude, details.longitude, details.locality, details.generatedPincode], (insertErr, insertResult) => {
+                    const sqlInsertCitizen = "INSERT INTO citizens (aadhar_number, status, latitude, longitude, locality, pincode) VALUES (?, ?, ?, ?)";
+                    db.query(sqlInsertCitizen, [details.aadharCardNumber, 'approved', details.locality, details.pincode], (insertErr, insertResult) => {
                       if (insertErr) {
                         console.log('Error adding citizen: ', insertErr);
                         return false;
@@ -156,8 +156,29 @@ const verifyUserSignup = (req, res) => {
   }
 };
 
+const getAadharDetails = (req, res) => {
+  const { phoneNumber } = req.body;
+  try {
+    const sqlGetAadharDetails = `select * from users where phone_number = ?`
 
+    aadhardb.query(sqlGetAadharDetails, [phoneNumber], (error, results) => {
+      if (error) {
+        console.log('error fetching aadhar details : ', error);
+      }
+
+      if (results.length > 0) {
+        res.json({ results, userExists: true })
+      } else {
+        console.log('nope');
+        res.json({ message: 'aadhar number does not exist', userExists: false })
+      }
+    })
+  } catch (error) {
+    console.log('error fetching aadhar details : ', error);
+  }
+}
 
 module.exports = {
   verifyUserSignup,
+  getAadharDetails
 };

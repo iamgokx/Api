@@ -5,8 +5,7 @@ const getIssues = (req, res) => {
     const sqlGetIssues = `
 SELECT 
 i.*,
-    u.first_name, 
-    u.last_name, 
+    u.full_name, 
     u.email, 
     GROUP_CONCAT(DISTINCT im.file_name) AS media_files, 
     GROUP_CONCAT(DISTINCT im.link) AS media_links, 
@@ -23,8 +22,7 @@ LEFT JOIN
     issues_media im ON i.issue_id = im.issue_id
 GROUP BY 
     i.issue_id, 
-    u.first_name, 
-    u.last_name, 
+    u.full_name, 
     u.email;
 `
 
@@ -48,8 +46,7 @@ const getDetailedIssue = (req, res) => {
   const { issue_id } = req.body
   try {
 
-    const sqlFindDetailedIssue = `
-SELECT 
+    const sqlFindDetailedIssue = `SELECT 
     I.issue_id,
     I.title,
     I.issue_description,
@@ -71,17 +68,20 @@ SELECT
     I.pincode,
     C.aadhar_number AS citizen_aadhar,
     C.locality AS citizen_locality,
-    C.latitude AS citizen_latitude,
-    C.longitude AS citizen_longitude,
-    U.first_name AS first_name,
-    U.last_name AS last_name,
+    U.full_name,
     COALESCE(media_files.media_files, '') AS media_files,  
     COALESCE(vote_counts.upvote_count, 0) AS upvote_count,
     COALESCE(vote_counts.downvote_count, 0) AS downvote_count,
     COALESCE(suggestion_counts.total_suggestions, 0) AS total_suggestions
 FROM issues I
+
+-- Link citizen ID with citizen Aadhaar
 LEFT JOIN citizen_aadhar_number CAN ON I.citizen_id = CAN.citizen_id
+
+-- Get citizen details
 LEFT JOIN citizens C ON CAN.aadhar_number = C.aadhar_number
+
+-- Get user full name
 LEFT JOIN users U ON CAN.citizen_id = U.email
 
 -- Aggregate media files
@@ -112,9 +112,35 @@ LEFT JOIN (
 ) suggestion_counts ON I.issue_id = suggestion_counts.issue_id
 
 WHERE I.issue_id = ?
-GROUP BY I.issue_id, C.aadhar_number, C.locality, C.latitude, C.longitude, U.first_name, U.last_name;
-
+GROUP BY 
+    I.issue_id, 
+    I.title,
+    I.issue_description,
+    I.solution,
+    I.category,
+    I.priority,
+    I.issue_status,
+    I.time_edited,
+    I.date_time_created,
+    I.date_completed,
+    I.is_anonymous,
+    I.estimate_complete_time,
+    I.rating,
+    I.feedback_text,
+    I.date_time_submitted,
+    I.latitude,
+    I.longitude,
+    I.locality,
+    I.pincode,
+    C.aadhar_number, 
+    C.locality, 
+    U.full_name,
+    media_files.media_files,
+    vote_counts.upvote_count,
+    vote_counts.downvote_count,
+    suggestion_counts.total_suggestions;
 `
+
     db.query(sqlFindDetailedIssue, [issue_id], (error, results) => {
       if (error) {
         console.log('error executing detailed find query : ', error);

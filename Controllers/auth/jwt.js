@@ -43,10 +43,10 @@ const verifyJwt = (req, res) => {
     console.log("Decoded Token:", decodedToken);
 
     const { email, name, userType } = decodedToken;
-    const [first_name, last_name] = name.split(" ");
+    
 
-    const sql = 'SELECT * FROM users WHERE email = ? AND first_name = ? AND last_name = ? AND user_type = ?';
-    db.query(sql, [email, first_name, last_name, userType], (error, results) => {
+    const sql = 'SELECT * FROM users WHERE email = ? AND full_name = ? AND user_type = ?';
+    db.query(sql, [email, name, userType], (error, results) => {
       if (error) {
         console.error('Error verifying JWT:', error);
         return res.status(500).json({ message: 'Internal Server Error', jwtStatus: false });

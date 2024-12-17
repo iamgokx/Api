@@ -4,7 +4,7 @@ const getIssueSuggestions = (req, res) => {
 
   const sqlGetSuggestions = `SELECT 
     issues_suggestions.*,
-    CONCAT(users.first_name, ' ', users.last_name) AS full_name
+    users.full_name
 FROM 
     issues_suggestions
 JOIN 
@@ -31,4 +31,25 @@ WHERE
   }
 }
 
-module.exports = { getIssueSuggestions }
+const submitSuggestion = (req, res) => {
+  const { issueId, email, userSuggestion, isanonymous } = req.body
+
+  try {
+    const sqlAddSuggestion = `
+	INSERT INTO issues_suggestions(issue_id,citizen_id,content,is_anonymous) VALUES (?,?,?,?)`
+
+    db.query(sqlAddSuggestion, [issueId, email, userSuggestion, isanonymous], (error, results) => {
+      if (error) {
+        console.log('error inserting issue suggestion : ', error);
+      }
+
+      if (results.affectedRows > 0) {
+        res.json({ message: 'success adding suggestion' });
+      }
+    })
+  } catch (error) {
+    console.log('error adding suggestion : ', error);
+  }
+}
+
+module.exports = { getIssueSuggestions, submitSuggestion }
