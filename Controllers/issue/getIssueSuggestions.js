@@ -1,4 +1,6 @@
 const db = require('../../models/database')
+const { getIO } = require('../socket/socketManager')
+
 const getIssueSuggestions = (req, res) => {
   const { issue_id } = req.body;
 
@@ -44,6 +46,11 @@ const submitSuggestion = (req, res) => {
       }
 
       if (results.affectedRows > 0) {
+        const io = getIO();
+        const data = {
+          message: issueId,
+        }
+        io.emit('newSuggestion', data)
         res.json({ message: 'success adding suggestion' });
       }
     })
@@ -53,3 +60,4 @@ const submitSuggestion = (req, res) => {
 }
 
 module.exports = { getIssueSuggestions, submitSuggestion }
+

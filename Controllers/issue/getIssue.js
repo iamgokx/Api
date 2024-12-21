@@ -103,11 +103,10 @@ LEFT JOIN (
 
 -- Aggregate suggestions
 LEFT JOIN (
-    SELECT issue_id, COUNT(*) AS total_suggestions
-    FROM (
-        SELECT DISTINCT issue_id, citizen_id 
-        FROM issues_suggestions
-    ) unique_suggestions
+    SELECT 
+        issue_id, 
+        COUNT(*) AS total_suggestions
+    FROM issues_suggestions
     GROUP BY issue_id
 ) suggestion_counts ON I.issue_id = suggestion_counts.issue_id
 
@@ -139,6 +138,7 @@ GROUP BY
     vote_counts.upvote_count,
     vote_counts.downvote_count,
     suggestion_counts.total_suggestions;
+
 `
 
     db.query(sqlFindDetailedIssue, [issue_id], (error, results) => {
@@ -146,7 +146,7 @@ GROUP BY
         console.log('error executing detailed find query : ', error);
       }
 
-      console.log(results[0]);
+      console.log('detailed issues details ', results[0]);
       res.json(results[0])
 
     })

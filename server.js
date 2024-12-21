@@ -7,6 +7,12 @@ const bodyParser = require('body-parser')
 const path = require('path')
 const fs = require('fs')
 
+const { initSocket } = require('./Controllers/socket/socketManager')
+const http = require('http')
+const server = http.createServer(app)
+
+const { handleSocketConnection } = require('./Controllers/socket/socket')
+const io = initSocket(server)
 
 app.use(cors({ origin: "*", methods: ["GET", "POST"] }));
 app.use(express.json({ limit: '10mb' }));
@@ -17,5 +23,12 @@ app.use('/api/users', router);
 app.use('/api/issues', issueRouter)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+io.on('connect', (socket) => {
+  console.log('User socket connected: ', socket.id);
+  handleSocketConnection(io, socket)
 
-app.listen(8000, console.log('server running at 8000'))
+
+});
+
+
+server.listen(8000, console.log('server running at 8000'))
