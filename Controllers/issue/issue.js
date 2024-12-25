@@ -1,7 +1,7 @@
 const db = require('../../models/database');
 const path = require('path');
 const insertIssueMedia = (issueId, mediaFiles) => {
-  const baseUploadPath = '/uploads';
+  const baseUploadPath = '/uploads/issues';
   const sqlInsertMedia = `INSERT INTO issues_media (issue_id, file_name, link) VALUES (?, ?, ?)`;
 
   mediaFiles.forEach(file => {

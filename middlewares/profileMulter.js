@@ -4,7 +4,7 @@ const path = require("path");
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
 
-    cb(null, path.join(__dirname, "../uploads/issues"));
+    cb(null, path.join(__dirname, "../uploads/profile"));
   },
   filename: (req, file, cb) => {
 
@@ -13,9 +13,9 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({
+const profileUpload = multer({
   storage,
-  limits: { fileSize: 25 * 1024 * 1024 },
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
 
     const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "video/mp4", "video/mov"];
@@ -29,4 +29,4 @@ const upload = multer({
 
 
 
-module.exports = upload;
+module.exports = profileUpload;
