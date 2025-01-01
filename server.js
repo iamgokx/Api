@@ -2,6 +2,7 @@ const express = require('express')
 const app = express();
 const { router } = require('./routes/user')
 const { issueRouter } = require('./routes/issues')
+const { proposalRouter } = require('./routes/proposals')
 const cors = require('cors')
 const bodyParser = require('body-parser')
 const path = require('path')
@@ -21,13 +22,12 @@ app.use(bodyParser.json());
 
 app.use('/api/users', router);
 app.use('/api/issues', issueRouter)
+app.use('/api/proposals', proposalRouter)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 io.on('connect', (socket) => {
   console.log('User socket connected: ', socket.id);
   handleSocketConnection(io, socket)
-
-
 });
 
 

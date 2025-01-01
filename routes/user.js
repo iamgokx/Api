@@ -9,6 +9,7 @@ const { submitIssue } = require('../Controllers/issue/issue')
 const upload = require('../middlewares/multer')
 const profileUpload = require('../middlewares/profileMulter')
 const { uploadPfp } = require('../Controllers/userProfile/pfp')
+const {getUserIssues} = require('../Controllers/issue/getIssue')
 
 router.post('/getUser', userLogIn);
 router.get('/otp', userRequestsOtp);
@@ -19,5 +20,6 @@ router.post('/verifyJwt', verifyJwt)
 router.post('/submitIssue', upload.array("media"), submitIssue)
 router.post('/getAadharDetails', getAadharDetails)
 router.post('/getProfilePicture', getProfilePicture)
-router.post('/uploadProfilePicture',uploadPfp)
+router.post('/pfpUpload', profileUpload.array('image'), uploadPfp)
+router.post('/getUserIssues', getUserIssues)
 module.exports = { router }

@@ -4,33 +4,41 @@ const getIssues = (req, res) => {
   try {
     const sqlGetIssues = `
 SELECT 
-i.*,
+    i.*,
     u.full_name, 
     u.email, 
+    c.picture_name,
     GROUP_CONCAT(DISTINCT im.file_name) AS media_files, 
     GROUP_CONCAT(DISTINCT im.link) AS media_links, 
-    (SELECT COUNT(*) FROM citizen_issues_votes civ WHERE civ.issue_id = i.issue_id AND civ.type = 'upvote') AS upvote_count, 
-    (SELECT COUNT(*) FROM citizen_issues_votes civ WHERE civ.issue_id = i.issue_id AND civ.type = 'downvote') AS downvote_count, 
-    (SELECT COUNT(*) FROM issues_suggestions s WHERE s.issue_id = i.issue_id) AS total_suggestions
+    (SELECT COUNT(*) 
+     FROM citizen_issues_votes civ 
+     WHERE civ.issue_id = i.issue_id AND civ.type = 'upvote') AS upvote_count, 
+    (SELECT COUNT(*) 
+     FROM citizen_issues_votes civ 
+     WHERE civ.issue_id = i.issue_id AND civ.type = 'downvote') AS downvote_count, 
+    (SELECT COUNT(*) 
+     FROM issues_suggestions s 
+     WHERE s.issue_id = i.issue_id) AS total_suggestions
 FROM 
     issues i
 JOIN 
-    citizen_aadhar_number c_a ON i.citizen_id = c_a.citizen_id
+    citizen_aadhar_number ca ON i.citizen_id = ca.citizen_id
 JOIN 
-    users u ON c_a.citizen_id = u.email
+    users u ON ca.citizen_id = u.email
+JOIN 
+    citizens c ON ca.aadhar_number = c.aadhar_number
 LEFT JOIN 
     issues_media im ON i.issue_id = im.issue_id
 GROUP BY 
-    i.issue_id, 
-    u.full_name, 
-    u.email;
+    i.issue_id;
 `
+
 
     db.query(sqlGetIssues, (error, results) => {
       if (error) {
         console.log('error finding issues :  ', error);
       }
-      console.log('Home results', results);
+      // console.log('Home results', results);
       res.json(results)
     })
   } catch (error) {
@@ -68,6 +76,7 @@ const getDetailedIssue = (req, res) => {
     I.pincode,
     C.aadhar_number AS citizen_aadhar,
     C.locality AS citizen_locality,
+    C.picture_name,
     U.full_name,
     COALESCE(media_files.media_files, '') AS media_files,  
     COALESCE(vote_counts.upvote_count, 0) AS upvote_count,
@@ -133,6 +142,7 @@ GROUP BY
     I.pincode,
     C.aadhar_number, 
     C.locality, 
+    C.picture_name,
     U.full_name,
     media_files.media_files,
     vote_counts.upvote_count,
@@ -155,6 +165,59 @@ GROUP BY
   }
 }
 
+const getUserIssues = (req, res) => {
+  try {
+    const { email } = req.body;
+    console.log('user profile email incoming : ', email);
+
+    const sqlGetUserIssues = `
+SELECT 
+    i.*,
+    u.full_name, 
+    u.email, 
+    c.picture_name,
+    GROUP_CONCAT(DISTINCT im.file_name) AS media_files, 
+    GROUP_CONCAT(DISTINCT im.link) AS media_links, 
+    (SELECT COUNT(*) 
+     FROM citizen_issues_votes civ 
+     WHERE civ.issue_id = i.issue_id AND civ.type = 'upvote') AS upvote_count, 
+    (SELECT COUNT(*) 
+     FROM citizen_issues_votes civ 
+     WHERE civ.issue_id = i.issue_id AND civ.type = 'downvote') AS downvote_count, 
+    (SELECT COUNT(*) 
+     FROM issues_suggestions s 
+     WHERE s.issue_id = i.issue_id) AS total_suggestions
+FROM 
+    issues i
+JOIN 
+    citizen_aadhar_number ca ON i.citizen_id = ca.citizen_id
+JOIN 
+    users u ON ca.citizen_id = u.email
+JOIN 
+    citizens c ON ca.aadhar_number = c.aadhar_number
+LEFT JOIN 
+    issues_media im ON i.issue_id = im.issue_id
+WHERE 
+    i.citizen_id = ?
+GROUP BY 
+    i.issue_id;
+`
+
+    db.query(sqlGetUserIssues, [email], (error, results) => {
+      if (error) {
+        console.log('error finding user issues ; ', error);
+      }
+
+      if (results.length > 0) {
+
+        res.json(results)
+      }
+    })
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 module.exports = {
-  getIssues, getDetailedIssue
+  getIssues, getDetailedIssue, getUserIssues
 }
