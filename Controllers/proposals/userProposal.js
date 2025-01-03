@@ -1,9 +1,9 @@
 const db = require('../../models/database');
 const path = require('path');
 
-const insertProposalMedia = (issueId, mediaFiles) => {
-  const baseUploadPath = '/uploads/userProposals';
-  const sqlInsertMedia = `INSERT INTO issues_media (issue_id, file_name, link) VALUES (?, ?, ?)`;
+const insertProposalMedia = (issueId, mediaFiles, type) => {
+  const baseUploadPath = type == 'media' ? '/uploads/userProposalsMedia' : '/uploads/userProposalFiles';
+  const sqlInsertMedia = `INSERT INTO citizen_proposal_media (citizen_proposal_id, file_name, link) VALUES (?, ?, ?)`;
 
   mediaFiles.forEach(file => {
     const filePath = path.join(baseUploadPath, file.filename);
@@ -38,15 +38,19 @@ const insertUserProposal = (req, res) => {
 
         const sqlInsertProposal = `insert into citizen_proposals (citizen_id,title,proposal_description,latitude,longitude,locality,pincode) values (?,?,?,?,?,?,?)`
 
-            db.query(sqlInsertProposal, [user, title, description, latitude, longitude, generatedLocality, generatedPincode], (error, results) => {
-              if (error) {
-                console.log('error inserting proposal detials : ', error);
-              }
+        db.query(sqlInsertProposal, [user, title, description, latitude, longitude, generatedLocality, generatedPincode], (error, results) => {
+          if (error) {
+            console.log('error inserting proposal detials : ', error);
+          }
 
-              if (results.affectedRows > 0) {
-                console.log('inserted proposal');
-                res.json({message : 'inserted proposal'})
-              }})
+          if (results.affectedRows > 0) {
+            console.log('inserted proposal');
+            const proposal_id = results.insertId
+            insertProposalMedia(proposal_id, files.media, 'media')
+            insertProposalMedia(proposal_id, files.documents, 'document')
+            res.json({ message: 'inserted proposal' })
+          }
+        })
 
       } else {
         console.log('pincode does not exist');
@@ -68,7 +72,10 @@ const insertUserProposal = (req, res) => {
 
               if (results.affectedRows > 0) {
                 console.log('inserted proposal');
-                res.json({message : 'inserted proposal'})
+                const proposal_id = results.insertId
+                insertProposalMedia(proposal_id, files.media, 'media')
+                insertProposalMedia(proposal_id, files.documents, 'document')
+                res.json({ message: 'inserted proposal' })
               }
             })
           } else {
