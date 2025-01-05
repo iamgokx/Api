@@ -218,6 +218,25 @@ GROUP BY
   }
 }
 
-module.exports = {
-  getIssues, getDetailedIssue, getUserIssues
+
+const getMapViewIssues = (req, res) => {
+  try {
+    const sqlGetMapIssue = 'select issue_id,latitude , longitude from issues;'
+
+    db.query(sqlGetMapIssue, (error, results) => {
+      if (error) {
+        console.log('error');
+      }
+
+      if (results.length > 0) {
+        res.json(results)
+      }
+    })
+
+  } catch (error) {
+    console.log('error: ', error);
+  }
 }
+  module.exports = {
+    getIssues, getDetailedIssue, getUserIssues, getMapViewIssues,
+  }

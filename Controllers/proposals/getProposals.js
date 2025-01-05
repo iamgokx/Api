@@ -52,7 +52,7 @@ GROUP BY
       }
 
       if (results.length > 0) {
-        console.log(results);
+
         res.json(results)
       }
     })
@@ -75,16 +75,25 @@ const getUserDetailedProposals = (req, res) => {
     cp.longitude,
     cp.locality,
     cp.pincode,
-    cp.citizen_id,
-    COUNT(cs.citizen_id) AS suggestion_count,
+    u.email AS citizen_email,
+    u.full_name AS citizen_name,
+    u.phone_number AS citizen_phone,
+    u.user_type AS user_type,
+    c.picture_name AS citizen_picture_name,
     GROUP_CONCAT(cpm.file_name SEPARATOR ', ') AS media_files,
-    GROUP_CONCAT(cpm.link SEPARATOR ', ') AS media_links
+    COUNT(cs.citizen_id) AS suggestion_count
 FROM 
     citizen_proposals cp
-LEFT JOIN 
-    citizen_proposals_suggestions cs ON cp.citizen_proposal_id = cs.citizen_proposal_id
+JOIN 
+    citizen_aadhar_number can ON cp.citizen_id = can.citizen_id
+JOIN 
+    users u ON can.citizen_id = u.email
+JOIN 
+    citizens c ON can.aadhar_number = c.aadhar_number
 LEFT JOIN 
     citizen_proposal_media cpm ON cp.citizen_proposal_id = cpm.citizen_proposal_id
+LEFT JOIN 
+    citizen_proposals_suggestions cs ON cp.citizen_proposal_id = cs.citizen_proposal_id
 WHERE 
     cp.citizen_proposal_id = ?
 GROUP BY 
@@ -96,7 +105,11 @@ GROUP BY
     cp.longitude, 
     cp.locality, 
     cp.pincode, 
-    cp.citizen_id;
+    u.email, 
+    u.full_name, 
+    u.phone_number, 
+    u.user_type, 
+    c.picture_name;
 
 `
 
@@ -106,24 +119,6 @@ GROUP BY
       }
 
       if (results.length > 0) {
-        console.log();
-        console.log();
-        console.log();
-        console.log();
-        console.log();
-        console.log();
-        console.log();
-        console.log();
-        console.log();
-        console.log();
-        console.log();
-        console.log();
-        console.log();
-        console.log();
-        console.log();
-        console.log();
-        console.log();
-        console.log(results);
         res.json(results)
       }
     })

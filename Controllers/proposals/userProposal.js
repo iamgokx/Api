@@ -1,6 +1,9 @@
 const db = require('../../models/database');
 const path = require('path');
 
+//TODO need to handel if there is no imgs sent or no documetns sent , as of nwo its crashing, remember to set required field in front end , solves the issues
+
+
 const insertProposalMedia = (issueId, mediaFiles, type) => {
   const baseUploadPath = type == 'media' ? '/uploads/userProposalsMedia' : '/uploads/userProposalFiles';
   const sqlInsertMedia = `INSERT INTO citizen_proposal_media (citizen_proposal_id, file_name, link) VALUES (?, ?, ?)`;
