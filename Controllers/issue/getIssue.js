@@ -221,7 +221,7 @@ GROUP BY
 
 const getMapViewIssues = (req, res) => {
   try {
-    const sqlGetMapIssue = 'select issue_id,latitude , longitude from issues;'
+    const sqlGetMapIssue = 'select issue_id,latitude , longitude, title,issue_description from issues;'
 
     db.query(sqlGetMapIssue, (error, results) => {
       if (error) {
@@ -237,6 +237,6 @@ const getMapViewIssues = (req, res) => {
     console.log('error: ', error);
   }
 }
-  module.exports = {
-    getIssues, getDetailedIssue, getUserIssues, getMapViewIssues,
-  }
+module.exports = {
+  getIssues, getDetailedIssue, getUserIssues, getMapViewIssues,
+}

@@ -6,15 +6,18 @@ const getIssueSuggestions = (req, res) => {
 
   const sqlGetSuggestions = `SELECT 
     issues_suggestions.*,
-    users.full_name
+    users.full_name,
+    citizens.picture_name AS profile_picture_name
 FROM 
     issues_suggestions
 JOIN 
     citizen_aadhar_number ON issues_suggestions.citizen_id = citizen_aadhar_number.citizen_id
 JOIN 
     users ON citizen_aadhar_number.citizen_id = users.email
+JOIN 
+    citizens ON citizen_aadhar_number.aadhar_number = citizens.aadhar_number
 WHERE 
-    issues_suggestions.issue_id = ?;
+    issues_suggestions.issue_id = ?
 `
   try {
     db.query(sqlGetSuggestions, [issue_id], (error, results) => {
