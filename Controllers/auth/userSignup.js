@@ -45,7 +45,7 @@ const verifyUserSignup = (req, res) => {
           db.query(sql, [details.email, details.name, details.password, details.phoneNumber, 'citizen'], (error, results) => {
             if (error) {
               console.log('Error creating user account:', error);
-              return res.status(500).json({ message: 'Error creating user account' });
+              return res.json({ message: 'Error creating user account : ', error });
             }
 
             if (results.affectedRows > 0) {

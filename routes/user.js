@@ -9,7 +9,7 @@ const { submitIssue } = require('../Controllers/issue/issue')
 const upload = require('../middlewares/multer')
 const profileUpload = require('../middlewares/profileMulter')
 const { uploadPfp } = require('../Controllers/userProfile/pfp')
-const {getUserIssues} = require('../Controllers/issue/getIssue')
+const { getUserIssues } = require('../Controllers/issue/getIssue')
 
 router.post('/getUser', userLogIn);
 router.get('/otp', userRequestsOtp);
