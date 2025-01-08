@@ -2,7 +2,7 @@ const db = require('../../models/database')
 
 const getUserProposals = (req, res) => {
   try {
-    const { email } = req.body;
+
 
     const sqlGetCitizenProposals = `SELECT 
     cp.citizen_proposal_id,
@@ -18,7 +18,10 @@ const getUserProposals = (req, res) => {
     u.phone_number AS citizen_phone,
     u.user_type AS user_type,
     c.picture_name AS citizen_picture_name,
-    GROUP_CONCAT(cpm.file_name SEPARATOR ', ') AS media_files
+    GROUP_CONCAT(DISTINCT cpm.file_name SEPARATOR ', ') AS media_files,
+    (SELECT COUNT(*) 
+     FROM citizen_proposals_suggestions cs 
+     WHERE cs.citizen_proposal_id = cp.citizen_proposal_id) AS suggestion_count
 FROM 
     citizen_proposals cp
 JOIN 
@@ -80,8 +83,14 @@ const getUserDetailedProposals = (req, res) => {
     u.phone_number AS citizen_phone,
     u.user_type AS user_type,
     c.picture_name AS citizen_picture_name,
-    GROUP_CONCAT(cpm.file_name SEPARATOR ', ') AS media_files,
-    COUNT(cs.citizen_id) AS suggestion_count
+    -- Aggregate media files in a subquery to avoid duplication
+    (SELECT GROUP_CONCAT(file_name SEPARATOR ', ') 
+     FROM citizen_proposal_media cpm 
+     WHERE cpm.citizen_proposal_id = cp.citizen_proposal_id) AS media_files,
+    -- Count suggestions in a subquery to avoid duplication
+    (SELECT COUNT(*) 
+     FROM citizen_proposals_suggestions cs 
+     WHERE cs.citizen_proposal_id = cp.citizen_proposal_id) AS suggestion_count
 FROM 
     citizen_proposals cp
 JOIN 
@@ -90,10 +99,6 @@ JOIN
     users u ON can.citizen_id = u.email
 JOIN 
     citizens c ON can.aadhar_number = c.aadhar_number
-LEFT JOIN 
-    citizen_proposal_media cpm ON cp.citizen_proposal_id = cpm.citizen_proposal_id
-LEFT JOIN 
-    citizen_proposals_suggestions cs ON cp.citizen_proposal_id = cs.citizen_proposal_id
 WHERE 
     cp.citizen_proposal_id = ?
 GROUP BY 
@@ -119,6 +124,7 @@ GROUP BY
       }
 
       if (results.length > 0) {
+
         res.json(results)
       }
     })
