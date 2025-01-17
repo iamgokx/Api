@@ -3,7 +3,6 @@ const db = require('../../models/database')
 const getUserProposals = (req, res) => {
   try {
 
-
     const sqlGetCitizenProposals = `SELECT 
     cp.citizen_proposal_id,
     cp.title,

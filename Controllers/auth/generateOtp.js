@@ -19,10 +19,10 @@ const sendOtpEmail = async (to, otp) => {
       text: `Your OTP code is ${otp}`,
     });
     console.log('Email sent:', info.response);
-    return true; // Return true if email is sent successfully
+    return true; 
   } catch (error) {
     console.error('Error sending email:', error);
-    return false; // Return false if there was an error
+    return false; 
   }
 };
 

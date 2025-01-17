@@ -7,18 +7,36 @@ const db = require('../../models/database');
 const aadhardb = require('../../models/aadharDatabase');
 
 const generateJWT = (req, res) => {
-  const details = req.body;
-  console.log(details.name);
-  console.log(details.email);
-  const payload = {
-    email: details.email,
-    name: details.name,
-    userType: "citizen",
-  };
+
+
   try {
-    const token = jwt.sign(payload, SECRET_KEY, { expiresIn: JWT_EXPIRATION })
-    console.log('token from backend ', jwtDecode(token));
-    return res.json({ token });
+    const details = req.body;
+
+    const sqlfinduser = `select user_type from users where email = ?`
+
+    db.query(sqlfinduser, [details.email], (error, results) => {
+      if (error) {
+        console.log('error finding user details for jwt , ',);
+      }
+
+      if (results.length > 0) {
+        console.log(results[0].user_type);
+        const userType = results[0].user_type;
+        const payload = {
+          email: details.email,
+          name: details.name,
+          userType: userType,
+        };
+
+        const token = jwt.sign(payload, SECRET_KEY, { expiresIn: JWT_EXPIRATION })
+        console.log('token from backend ', jwtDecode(token));
+        return res.json({ token, userType });
+      }
+    })
+
+
+
+
   } catch (error) {
     console.log('error creating jwt : ', error)
   }
@@ -43,7 +61,7 @@ const verifyJwt = (req, res) => {
     console.log("Decoded Token:", decodedToken);
 
     const { email, name, userType } = decodedToken;
-    
+
 
     const sql = 'SELECT * FROM users WHERE email = ? AND full_name = ? AND user_type = ?';
     db.query(sql, [email, name, userType], (error, results) => {
@@ -54,7 +72,7 @@ const verifyJwt = (req, res) => {
 
       if (results.length > 0) {
         console.log("User found in database:", results);
-        return res.json({ message: 'User JWT Valid', jwtStatus: true });
+        return res.json({ message: 'User JWT Valid', jwtStatus: true, user_type: results[0].user_type });
       } else {
         return res.status(401).json({ message: 'User JWT Invalid', jwtStatus: false });
       }
