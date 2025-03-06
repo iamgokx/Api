@@ -21,7 +21,7 @@ const getUserGraphData = (req, res) => {
 }
 
 const getUserGraphDataAllUsers = (req, res) => {
-  const sql = 'select email,user_type from users'
+  const sql = `select email,user_type from users WHERE user_type != 'super_admin';`
  
   try {
     db.query(sql, (error, results) => {
@@ -39,6 +39,7 @@ const getUserGraphDataAllUsers = (req, res) => {
     console.log('error gettting user graph data : ', error);
   }
 }
+
 
 
 
