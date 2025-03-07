@@ -16,7 +16,7 @@ const generateJWT = (req, res) => {
 
     db.query(sqlfinduser, [details.email], (error, results) => {
       if (error) {
-        console.log('error finding user details for jwt , ',);
+        console.log('error finding user details for jwt , ', error);
       }
 
       if (results.length > 0) {
