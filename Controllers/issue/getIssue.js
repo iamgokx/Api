@@ -29,8 +29,11 @@ JOIN
     citizens c ON ca.aadhar_number = c.aadhar_number
 LEFT JOIN 
     issues_media im ON i.issue_id = im.issue_id
+WHERE 
+    i.issue_status = 'approved'   -- ✅ Added condition to filter only approved issues
 GROUP BY 
     i.issue_id;
+
 `
 
 

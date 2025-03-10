@@ -10,6 +10,9 @@ const upload = require('../middlewares/multer')
 const profileUpload = require('../middlewares/profileMulter')
 const { uploadPfp } = require('../Controllers/userProfile/pfp')
 const { getUserIssues } = require('../Controllers/issue/getIssue')
+const { subscribe, unSubscribe, getUserSubscriptions, getCitizenId } = require('../Controllers/user/subscribtions')
+const { getUserVotes } = require('../Controllers/user/getVotes')
+
 
 router.post('/getUser', userLogIn);
 router.get('/otp', userRequestsOtp);
@@ -22,4 +25,12 @@ router.post('/getAadharDetails', getAadharDetails)
 router.post('/getProfilePicture', getProfilePicture)
 router.post('/pfpUpload', profileUpload.array('image'), uploadPfp)
 router.post('/getUserIssues', getUserIssues)
+router.post('/getUserSubscriptions', getUserSubscriptions)
+router.post('/subscribe', subscribe)
+router.post('/unSubscribe', unSubscribe)
+router.post('/getCitizenId', getCitizenId)
+router.post('/getUserVotes', getUserVotes)
+
+
+
 module.exports = { router }

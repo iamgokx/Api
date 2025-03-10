@@ -4,7 +4,6 @@ const { jwtDecode } = require('jwt-decode')
 const SECRET_KEY = process.env.JWT_SECRET_KEY
 const JWT_EXPIRATION = '7d'
 const db = require('../../models/database');
-const aadhardb = require('../../models/aadharDatabase');
 
 const generateJWT = (req, res) => {
 
@@ -12,7 +11,11 @@ const generateJWT = (req, res) => {
   try {
     const details = req.body;
 
-    const sqlfinduser = `select user_type from users where email = ?`
+    const sqlfinduser = `SELECT u.user_type, c.picture_name
+FROM users u
+LEFT JOIN citizen_aadhar_number ca ON u.email = ca.citizen_id
+LEFT JOIN citizens c ON ca.aadhar_number = c.aadhar_number
+WHERE u.email = ?;`
 
     db.query(sqlfinduser, [details.email], (error, results) => {
       if (error) {
@@ -21,11 +24,13 @@ const generateJWT = (req, res) => {
 
       if (results.length > 0) {
         console.log(results[0].user_type);
+        console.log(results[0].picture_name);
         const userType = results[0].user_type;
         const payload = {
           email: details.email,
           name: details.name,
           userType: userType,
+          picture: results[0].picture_name
         };
 
         const token = jwt.sign(payload, SECRET_KEY, { expiresIn: JWT_EXPIRATION })
