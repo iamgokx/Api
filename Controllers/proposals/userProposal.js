@@ -4,11 +4,11 @@ const path = require('path');
 //TODO need to handel if there is no imgs sent or no documetns sent , as of nwo its crashing, remember to set required field in front end , solves the issues
 
 
-const insertProposalMedia = (issueId, mediaFiles, type) => {
+const insertProposalMedia = (issueId, files, type) => {
   const baseUploadPath = type == 'media' ? '/uploads/userProposalsMedia' : '/uploads/userProposalFiles';
   const sqlInsertMedia = `INSERT INTO citizen_proposal_media (citizen_proposal_id, file_name, link) VALUES (?, ?, ?)`;
 
-  mediaFiles.forEach(file => {
+  files.forEach(file => {
     const filePath = path.join(baseUploadPath, file.filename);
     db.query(sqlInsertMedia, [issueId, file.filename, filePath], (error, results) => {
       if (error) {
@@ -49,8 +49,16 @@ const insertUserProposal = (req, res) => {
           if (results.affectedRows > 0) {
             console.log('inserted proposal');
             const proposal_id = results.insertId
-            insertProposalMedia(proposal_id, files.media, 'media')
-            insertProposalMedia(proposal_id, files.documents, 'document')
+
+            if (files.media) {
+              insertProposalMedia(proposal_id, files.media, 'media')
+
+            }
+
+            if (files.documents) {
+              insertProposalMedia(proposal_id, files.documents, 'document')
+
+            }
             res.json({ message: 'inserted proposal' })
           }
         })

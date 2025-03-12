@@ -139,7 +139,7 @@ const getAadharDetails = (req, res) => {
       if (results.length > 0) {
         res.json({ results, userExists: true })
       } else {
-        console.log('nope');
+        console.log('user does not exist in aadhar card database');
         res.json({ message: 'aadhar number does not exist', userExists: false })
       }
     })

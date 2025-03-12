@@ -12,11 +12,12 @@ const { uploadPfp } = require('../Controllers/userProfile/pfp')
 const { getUserIssues } = require('../Controllers/issue/getIssue')
 const { subscribe, unSubscribe, getUserSubscriptions, getCitizenId } = require('../Controllers/user/subscribtions')
 const { getUserVotes } = require('../Controllers/user/getVotes')
-
+const { setNewUserPassword } = require('../Controllers/user/newPassword')
 
 router.post('/getUser', userLogIn);
 router.get('/otp', userRequestsOtp);
 router.get('/otp/verify', verifyOtp);
+
 router.post('/verifyUser', verifyUserSignup)
 router.post('/generateJwt', generateJWT)
 router.post('/verifyJwt', verifyJwt)
@@ -30,6 +31,8 @@ router.post('/subscribe', subscribe)
 router.post('/unSubscribe', unSubscribe)
 router.post('/getCitizenId', getCitizenId)
 router.post('/getUserVotes', getUserVotes)
+router.post('/setNewPassword', setNewUserPassword)
+
 
 
 

@@ -75,7 +75,7 @@ const insertIssueDetails = (res, issueDetails, mediaReceived) => {
           title,
           issue_description,
           solution,
-          category,
+          department_id,
           issue_status,
           date_time_created,
           is_anonymous,

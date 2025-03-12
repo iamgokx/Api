@@ -3,102 +3,121 @@ const path = require('path');
 
 //TODO need to handel if there is no imgs sent or no documetns sent , as of nwo its crashing, remember to set required field in front end , solves the issues
 
-// const insertProposalMedia = (issueId, mediaFiles, type) => {
-//   const baseUploadPath = type == 'media' ? '/uploads/userProposalsMedia' : '/uploads/userProposalFiles';
-//   const sqlInsertMedia = `INSERT INTO citizen_proposal_media (citizen_proposal_id, file_name, link) VALUES (?, ?, ?)`;
+const insertAnnouncementMedia = (announcement_id, mediaFiles, type) => {
+  const baseUploadPath = type == 'media' ? '/uploads/govAnnouncementMedia' : '/uploads/govProposalFIles';
+  const sqlInsertMedia = `insert into announcement_media values (?,?,?)`;
 
-//   mediaFiles.forEach(file => {
-//     const filePath = path.join(baseUploadPath, file.filename);
-//     db.query(sqlInsertMedia, [issueId, file.filename, filePath], (error, results) => {
-//       if (error) {
-//         console.log('Error inserting media:', error);
-//       } else {
-//         console.log(`Media inserted for issue ID ${issueId}:`, file.filename);
-//       }
-//     });
-//   });
-// };
+  mediaFiles.forEach(file => {
+    const filePath = path.join(baseUploadPath, file.filename);
+    db.query(sqlInsertMedia, [announcement_id, file.filename, filePath], (error, results) => {
+      if (error) {
+        console.log('Error inserting media:', error);
+      } else {
+        console.log(`Media inserted for announcement ID ${announcement_id}:`, file.filename);
+      }
+    });
+  });
+};
 
 
 
 const addNewAnnouncement = (req, res) => {
-
-
   try {
-    console.log('receiving req for announcement');
-    const { title, generatedAddress, generatedCity, generatedPincode, generatedLocality, generatedState, latitude, longitude, announcementType } = req.body;
-    console.log('title,generatedAddress,generatedCity,generatedPincode,generatedLocality,generatedState,latitude,longitude,announcementType: ', title, generatedAddress, generatedCity, generatedPincode, generatedLocality, generatedState, latitude, longitude, announcementType);
+    console.log("Receiving request for new announcement");
 
+    const {
+      email,
+      district,
+      taluka,
+      title,
+      generatedAddress,
+      generatedCity,
+      generatedPincode,
+      generatedLocality,
+      description,
+      generatedState,
+      latitude,
+      longitude,
+      announcementType,
+    } = req.body;
 
-    // const files = req.files;
-    // console.log('filesdocuments ', files.documents);
-    // console.log('filesmedia ', files.media);
+    console.log("Request body:", email, district, taluka);
+    console.log("Multer received files:", req.files);
 
-    const sqlCheckPincode = `select * from citizen_proposal_pincodes where pincode = ?`
+    const files = req.files;
+    console.log("Files documents:", files?.documents);
+    console.log("Files media:", files?.media);
 
-    // db.query(sqlCheckPincode, [generatedPincode], (error, results) => {
-    //   if (error) {
-    //     console.log('error finding existing pincode : ', error);
-    //   }
+    const sqlAddAnnouncement = `insert into announcements (dep_coordinator_id, title, announcement_description, announcement_type) values (?,?,?,?)`;
 
-    //   if (results.length > 0) {
-    //     console.log('pincode exists');
+    db.query(sqlAddAnnouncement, [email, title, description, announcementType], (error, results) => {
+      if (error) {
+        console.log("Error executing add announcement query:", error);
+        return res.send({ error: "Database error while adding announcement" });
+      }
 
-    //     const sqlInsertProposal = `insert into citizen_proposals (citizen_id,title,proposal_description,latitude,longitude,locality,pincode) values (?,?,?,?,?,?,?)`
+      if (!results || results.affectedRows === 0) {
+        console.log("Something went wrong while adding announcement.");
+        return res.send({ error: "Failed to add announcement" });
+      }
 
-    //     db.query(sqlInsertProposal, [user, title, description, latitude, longitude, generatedLocality, generatedPincode], (error, results) => {
-    //       if (error) {
-    //         console.log('error inserting proposal detials : ', error);
-    //       }
+      console.log("Announcement added successfully:", results);
+      const announcement_id = results.insertId;
 
-    //       if (results.affectedRows > 0) {
-    //         console.log('inserted proposal');
-    //         const proposal_id = results.insertId
-    //         insertProposalMedia(proposal_id, files.media, 'media')
-    //         insertProposalMedia(proposal_id, files.documents, 'document')
-    //         res.json({ message: 'inserted proposal' })
-    //       }
-    //     })
+      if (files?.media) {
+        insertAnnouncementMedia(announcement_id, files.media, "media");
+      }
+      if (files?.documents) {
+        insertAnnouncementMedia(announcement_id, files.documents, "documents");
+      }
 
-    //   } else {
-    //     console.log('pincode does not exist');
-    //     const sqlInsertPincode = `Insert into citizen_proposal_pincodes values(?,?,?)`
+      console.log("This is district:", district);
+      console.log("This is taluka:", taluka);
 
-    //     db.query(sqlInsertPincode, [generatedPincode, generatedCity, generatedState], (error, results) => {
-    //       if (error) {
-    //         console.log('error inserting pincode : ', error);
-    //       }
-    //       if (results.affectedRows > 0) {
-    //         console.log('pincode inserted ');
+      if (district === "All") {
+        console.log("District 'All' selected");
+      }
 
-    //         const sqlInsertProposal = `insert into citizen_proposals (citizen_id,title,proposal_description,latitude,longitude,locality,pincode) values (?,?,?,?,?,?,?)`
+      const sqlInsertTargetLocation = `insert into announcement_target_location(district, taluka) values (?,?)`;
 
-    //         db.query(sqlInsertProposal, [user, title, description, latitude, longitude, generatedLocality, generatedPincode], (error, results) => {
-    //           if (error) {
-    //             console.log('error inserting proposal detials : ', error);
-    //           }
+      db.query(sqlInsertTargetLocation, [district, district === "All" ? "All" : taluka], (error, results) => {
+        if (error) {
+          console.log("Error executing insert target location query:", error);
+          return res.send({ error: "Database error while adding target location" });
+        }
 
-    //           if (results.affectedRows > 0) {
-    //             console.log('inserted proposal');
-    //             const proposal_id = results.insertId
-    //             insertProposalMedia(proposal_id, files.media, 'media')
-    //             insertProposalMedia(proposal_id, files.documents, 'document')
-    //             res.json({ message: 'inserted proposal' })
-    //           }
-    //         })
-    //       } else {
-    //         console.log('could not insert pincode');
-    //       }
-    //     })
-    //   }
-    // })
+        if (!results || results.affectedRows === 0) {
+          console.log("No rows added in target location query");
+          return res.send({ error: "Failed to add target location" });
+        }
 
+        console.log("Target location added successfully:", results);
+        const location_id = results.insertId;
+
+        const sqlAddAnnouncementLocation = `insert into announcement_location values (?,?)`;
+
+        db.query(sqlAddAnnouncementLocation, [announcement_id, location_id], (error, results) => {
+          if (error) {
+            console.log("Error executing add announcement location query:", error);
+            return res.send({ error: "Database error while linking announcement to location" });
+          }
+
+          if (!results || results.affectedRows === 0) {
+            console.log("Failed to add location in junction table");
+            return res.send({ error: "Failed to link announcement to location" });
+          }
+
+          console.log("Announcement location added successfully:", results);
+          return res.send({ message: "Announcement added successfully!" });
+        });
+      });
+    });
   } catch (error) {
-    console.log(
-      'error insertinguserproposal , ', error
-    );
+    console.log("Unexpected error inserting announcement:", error);
+    return res.send({ error: "Internal Server Error" });
   }
-}
+};
+
 
 
 

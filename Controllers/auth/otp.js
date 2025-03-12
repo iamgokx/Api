@@ -46,7 +46,7 @@ const verifyOtp = (req, res) => {
   if (otpData.otp === otp) {
     delete otpStore[email];
     console.log('OTP is valid');
-    res.json({ message: 'OTP verified successfully', userStatus : true });
+    res.json({ message: 'OTP verified successfully', userStatus: true });
   }
 
   if (otpData.otp !== otp) {
