@@ -17,7 +17,7 @@ const { handleSocketConnection } = require('./Controllers/socket/socket');
 const multer = require('multer');
 const io = initSocket(server)
 const { announcementsRouter } = require('./routes/announcements')
-
+const { subBranchCoordinator } = require('./routes/subBranchCoordinator')
 app.use(cors({ origin: "*", methods: ["GET", "POST"] }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, }));
@@ -32,6 +32,7 @@ app.use('/api/admin', adminRouter)
 app.use('/api/branchCoordinator', branchCoordinator)
 app.use('/api/department', department)
 app.use('/api/announcements', announcementsRouter)
+app.use('/api/subBranchCoordinator', subBranchCoordinator)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 io.on('connect', (socket) => {

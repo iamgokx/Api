@@ -30,7 +30,7 @@ JOIN
 LEFT JOIN 
     issues_media im ON i.issue_id = im.issue_id
 WHERE 
-    i.issue_status = 'approved'   -- ✅ Added condition to filter only approved issues
+   i.issue_status != 'registered' 
 GROUP BY 
     i.issue_id;
 
@@ -62,7 +62,6 @@ const getDetailedIssue = (req, res) => {
     I.title,
     I.issue_description,
     I.solution,
-    I.category,
     I.priority,
     I.issue_status,
     I.time_edited,
@@ -128,7 +127,7 @@ GROUP BY
     I.title,
     I.issue_description,
     I.solution,
-    I.category,
+
     I.priority,
     I.issue_status,
     I.time_edited,

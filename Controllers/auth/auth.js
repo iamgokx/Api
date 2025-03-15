@@ -4,7 +4,7 @@ const userLogIn = (req, res) => {
   const { email, password } = req.body;
 
 
-  const query = "SELECT * FROM users WHERE email = ? AND user_password = ?";
+  const query = "SELECT * FROM users WHERE BINARY  email = ? AND BINARY user_password = ?";
 
   db.query(query, [email, password], (error, results) => {
     if (error) {

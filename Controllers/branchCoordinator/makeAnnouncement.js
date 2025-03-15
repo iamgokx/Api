@@ -22,8 +22,9 @@ const insertAnnouncementMedia = (announcement_id, mediaFiles, type) => {
 
 
 const addNewAnnouncement = (req, res) => {
+
   try {
-    console.log("Receiving request for new announcement");
+
 
     const {
       email,
