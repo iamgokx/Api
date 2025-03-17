@@ -13,7 +13,8 @@ const { getUserIssues } = require('../Controllers/issue/getIssue')
 const { subscribe, unSubscribe, getUserSubscriptions, getCitizenId } = require('../Controllers/user/subscribtions')
 const { getUserVotes } = require('../Controllers/user/getVotes')
 const { setNewUserPassword } = require('../Controllers/user/newPassword')
-const { getPendingFeedback } = require('../Controllers/user/feedback.js')
+const { getPendingFeedback, addFeedback, getRepliedFeedback } = require('../Controllers/user/feedback.js');
+const { getProfileIssueSuggestions, getProfileCitizenProposalSuggestions, getProfileGovProposalSuggestions } = require('../Controllers/user/suggestions.js');
 router.post('/getUser', userLogIn);
 router.get('/otp', userRequestsOtp);
 router.get('/otp/verify', verifyOtp);
@@ -32,9 +33,15 @@ router.post('/unSubscribe', unSubscribe)
 router.post('/getCitizenId', getCitizenId)
 router.post('/getUserVotes', getUserVotes)
 router.post('/setNewPassword', setNewUserPassword)
+
 router.post('/getPendingFeedback', getPendingFeedback)
 
+router.post('/sendFeedback', addFeedback)
+router.post('/getRepliedFeedback', getRepliedFeedback)
 
+router.post('/getIssueProfileSuggestions', getProfileIssueSuggestions)
+router.post('/getProfileCitizenProposalSuggestions', getProfileCitizenProposalSuggestions)
+router.post('/getProfileGovProposalSuggestions', getProfileGovProposalSuggestions)
 
 
 

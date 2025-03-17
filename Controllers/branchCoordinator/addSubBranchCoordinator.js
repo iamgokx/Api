@@ -46,16 +46,17 @@ const sendAccountCreationEmail = (email, name, password) => {
 
 const addSubBranchCoordinator = (req, res) => {
   try {
-    const { name, departmentName, email, phoneNumber, latitude, longitude, password } = req.body;
-    console.log(name, departmentName, email, phoneNumber, latitude, longitude, password);
+    const { name, departmentName, email, phoneNumber, latitude, longitude, password, pincodes } = req.body;
+    console.log(name, departmentName, email, phoneNumber, latitude, longitude, password, pincodes);
+
+    const pincodeArray = pincodes.split(',').map(pincode => pincode.trim());
 
     // Check if user exists
-    const sql = `SELECT * FROM users WHERE email = ?`;
-
-    db.query(sql, [email], (error, results) => {
+    const sqlCheckUser = `SELECT * FROM users WHERE email = ?`;
+    db.query(sqlCheckUser, [email], (error, results) => {
       if (error) {
-        console.error('Error finding if user exists:', error);
-        return res.json({ status: false, message: 'Database error while checking user existence' });
+        console.error('Error checking user existence:', error);
+        return res.send({ status: false, message: 'Database error while checking user existence' });
       }
 
       if (results.length === 0) {
@@ -63,51 +64,62 @@ const addSubBranchCoordinator = (req, res) => {
 
         // Add user
         const sqlAddUser = `INSERT INTO users (email, full_name, user_password, phone_number, user_type) VALUES (?, ?, ?, ?, 'sub_branch_coordinator')`;
-
         db.query(sqlAddUser, [email, name, password, phoneNumber], (error, results) => {
           if (error) {
-            console.error('Error adding user for sub-branch coordinator:', error);
-            return res.json({ status: false, message: 'Database error while adding user' });
+            console.error('Error adding user:', error);
+            return res.send({ status: false, message: 'Database error while adding user' });
           }
 
           if (!results || results.affectedRows === 0) {
-            console.log('User insertion query ran but did not insert any rows.');
-            return res.json({ status: false, message: 'Failed to add user' });
+            return res.send({ status: false, message: 'Failed to add user' });
           }
 
           console.log('User added successfully:', results);
 
           // Add sub-branch coordinator entry
           const sqlAddSubBranchCoordinator = `INSERT INTO sub_department_coordinators (sub_department_coordinator_id, department_id, latitude, longitude) VALUES (?, ?, ?, ?)`;
-
           db.query(sqlAddSubBranchCoordinator, [email, departmentName, latitude, longitude], (error, results) => {
             if (error) {
               console.error('Error adding sub-branch coordinator:', error);
-              return res.json({ status: false, message: 'Database error while adding sub-branch coordinator' });
+              return res.send({ status: false, message: 'Database error while adding sub-branch coordinator' });
             }
 
             if (!results || results.affectedRows === 0) {
-              console.log('Sub-branch coordinator insertion query ran but did not insert any rows.');
-              return res.json({ status: false, message: 'Failed to add sub-branch coordinator' });
+              return res.send({ status: false, message: 'Failed to add sub-branch coordinator' });
             }
 
             console.log('Sub-branch coordinator added successfully:', results);
-            sendAccountCreationEmail(email, name, password);
-            return res.json({ status: true, message: 'Sub-branch coordinator added successfully' });
+
+            // Map coordinator to multiple pincodes
+            const sqlMapCoordinatorPincodes = `INSERT INTO sub_dep_coordinator_pincodes (sub_department_coordinator_id, pincode) VALUES ?`;
+            const coordinatorPincodeValues = pincodeArray.map(pincode => [email, pincode]);
+
+            db.query(sqlMapCoordinatorPincodes, [coordinatorPincodeValues], (error, results) => {
+              if (error) {
+                console.error('Error mapping pincodes to coordinator:', error);
+                return res.send({ status: false, message: 'Database error while mapping pincodes to coordinator' });
+              }
+
+              console.log('Coordinator mapped to pincodes successfully:', results);
+              sendAccountCreationEmail(email, name, password);
+              return res.send({ status: true, message: 'Sub-branch coordinator added successfully' });
+            });
           });
         });
 
       } else {
-        console.log('User exists, please enter valid details');
-        return res.json({ status: false, message: 'User already exists. Please enter different details.' });
+        console.log('User already exists');
+        return res.send({ status: false, message: 'User already exists. Please enter different details.' });
       }
     });
 
   } catch (error) {
     console.error('Unexpected server error:', error);
-    return res.json({ status: false, message: 'Internal server error' });
+    return res.send({ status: false, message: 'Internal server error' });
   }
 };
+
+
 
 module.exports = {
   addSubBranchCoordinator

@@ -34,14 +34,15 @@ FROM issues i
 JOIN issues_pincode ip ON i.pincode = ip.pincode
 LEFT JOIN issues_media im ON i.issue_id = im.issue_id
 LEFT JOIN reports r ON i.issue_id = r.issue_id  
-WHERE i.department_id = ?
-AND i.issue_status = 'completed'
+JOIN sub_dep_coordinator_pincodes scp ON i.pincode = scp.pincode  
+WHERE scp.sub_department_coordinator_id = ?
 AND r.issue_id IS NULL  
 GROUP BY i.issue_id;
+
 `
 
 
-        db.query(sqlGetIssuesForSubDep, [depId], (error, results) => {
+        db.query(sqlGetIssuesForSubDep, [email], (error, results) => {
           if (error) {
             console.log(error);
           }

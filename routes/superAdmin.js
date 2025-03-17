@@ -7,6 +7,7 @@ const {editCitizen} = require('../Controllers/admin/editCitizen');
 const {getDepartmentCoordinators} = require('../Controllers/admin/getDepartmentCoordinators')
 const {getSubDepartmentCoordinators} = require('../Controllers/admin/getSubDepartmetnCoordinators')
 const {addBranchCoordinator} = require('../Controllers/admin/addBranchCoordinator')
+const { getReportsChartData, getIssueStatusChartData, getCompletionChartData, getIssuePriorityChartData } = require('../Controllers/admin/graphsData')
 const adminRouter = express.Router()
 
 adminRouter.post('/userGraphData', getUserGraphData)
@@ -20,6 +21,14 @@ adminRouter.post('/getSubDepartmentCoordinators', getSubDepartmentCoordinators)
 adminRouter.post('/addBranchCoordinator', addBranchCoordinator)
 
 
+
+adminRouter.post('/getReportsChartData', getReportsChartData)
+
+adminRouter.post('/getissueStatusChartData', getIssueStatusChartData)
+
+adminRouter.post('/getCompletionChartData', getCompletionChartData)
+
+adminRouter.post('/getIssuePriorityChartData', getIssuePriorityChartData)
 
 
 module.exports = {
