@@ -38,6 +38,11 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 io.on('connect', (socket) => {
   console.log('User socket connected: ', socket.id);
   handleSocketConnection(io, socket)
+
+ 
+  socket.on('setup', email =>{
+    console.log('email : ', email);
+  })
 });
 
 

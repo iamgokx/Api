@@ -21,11 +21,7 @@ const getIssues = (req, res) => {
 
 
         const sqlGetIssuesForSubDep = `SELECT 
-    i.issue_id,
-    i.title, 
-    i.issue_status, 
-    i.priority,
-    i.date_time_created, 
+    i.*,
     ip.state, 
     ip.city, 
     ip.pincode,
@@ -35,8 +31,10 @@ JOIN issues_pincode ip ON i.pincode = ip.pincode
 LEFT JOIN issues_media im ON i.issue_id = im.issue_id
 LEFT JOIN reports r ON i.issue_id = r.issue_id  
 JOIN sub_dep_coordinator_pincodes scp ON i.pincode = scp.pincode  
+JOIN sub_department_coordinators sdc ON scp.sub_department_coordinator_id = sdc.sub_department_coordinator_id
 WHERE scp.sub_department_coordinator_id = ?
 AND r.issue_id IS NULL  
+AND i.department_id = sdc.department_id 
 GROUP BY i.issue_id;
 
 `
@@ -99,15 +97,16 @@ const getIssuesWithReports = (req, res) => {
 FROM issues i
 JOIN issues_pincode ip ON i.pincode = ip.pincode
 LEFT JOIN issues_media im ON i.issue_id = im.issue_id
-JOIN reports r ON i.issue_id = r.issue_id  -- Ensuring only issues that have reports are included
-WHERE i.department_id = ?
+JOIN reports r ON i.issue_id = r.issue_id 
+JOIN sub_dep_coordinator_pincodes sdcp ON i.pincode = sdcp.pincode 
+WHERE sdcp.sub_department_coordinator_id = ?  
 AND i.issue_status = 'completed'
 GROUP BY i.issue_id, r.title, r.report_description, r.date_time_created;
 
 `
 
 
-        db.query(sqlGetIssuesForSubDep, [depId], (error, results) => {
+        db.query(sqlGetIssuesForSubDep, [email], (error, results) => {
           if (error) {
             console.log(error);
           }

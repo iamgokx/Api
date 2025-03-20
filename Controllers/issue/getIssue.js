@@ -62,6 +62,7 @@ const getDetailedIssue = (req, res) => {
     I.title,
     I.issue_description,
     I.solution,
+    I.department_id,
     I.priority,
     I.issue_status,
     I.time_edited,
@@ -127,7 +128,7 @@ GROUP BY
     I.title,
     I.issue_description,
     I.solution,
-
+    I.department_id,
     I.priority,
     I.issue_status,
     I.time_edited,
