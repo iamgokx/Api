@@ -1,5 +1,6 @@
 const db = require('../../models/database');
 const path = require('path');
+const { sendNotification } = require('../../socketData/manageSocket');
 
 //TODO need to handel if there is no imgs sent or no documetns sent , as of nwo its crashing, remember to set required field in front end , solves the issues
 
@@ -23,6 +24,7 @@ const insertProposalMedia = (issueId, files, type) => {
 const insertUserProposal = (req, res) => {
   try {
     const { user, title, description, latitude, longitude, generatedCity, generatedPincode, generatedAddress, generatedLocality, generatedState } = req.body;
+    console.log('user: ', user);
     console.log('generatedLocality: ', generatedLocality);
 
     const files = req.files;
@@ -48,6 +50,7 @@ const insertUserProposal = (req, res) => {
 
           if (results.affectedRows > 0) {
             console.log('inserted proposal');
+            sendNotification(user, 'Your proposal was submitted for approval.')
             const proposal_id = results.insertId
 
             if (files.media) {
@@ -59,6 +62,7 @@ const insertUserProposal = (req, res) => {
               insertProposalMedia(proposal_id, files.documents, 'document')
 
             }
+
             res.json({ message: 'inserted proposal' })
           }
         })

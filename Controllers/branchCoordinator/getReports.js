@@ -6,6 +6,36 @@ const getReports = (req, res) => {
     const { email } = req.body
     console.log('email: ', email);
 
+    //     const sqlGetIssuesForSubDep = `SELECT 
+    //     i.issue_id,
+    //     i.title, 
+    //     i.issue_status, 
+    //     i.priority,
+    //     i.date_time_created, 
+    //     ip.state, 
+    //     ip.city, 
+    //     ip.pincode,
+    //     -- Combine both issue media and report media into a single column
+    //     COALESCE(GROUP_CONCAT(DISTINCT im.file_name SEPARATOR ', '), '') AS issue_media_files,
+    //     COALESCE(GROUP_CONCAT(DISTINCT rm.file_name SEPARATOR ', '), '') AS report_media_files,
+    //     r.title AS report_title,
+    //     r.report_description,
+    //     r.date_time_created AS report_created_at,
+    //     sdc.sub_department_coordinator_id  
+    // FROM issues i
+    // JOIN issues_pincode ip ON i.pincode = ip.pincode
+    // LEFT JOIN issues_media im ON i.issue_id = im.issue_id
+    // JOIN reports r ON i.issue_id = r.issue_id
+    // LEFT JOIN reports_media rm ON r.issue_id = rm.report_id  
+    // JOIN sub_department_coordinators sdc ON r.sub_branch_coordinator_id = sdc.sub_department_coordinator_id  
+    // WHERE i.department_id = (
+    //     SELECT department_id FROM department_coordinators WHERE dep_coordinator_id = ?
+    // ) 
+    // AND i.issue_status = 'completed'
+    // GROUP BY i.issue_id, r.title, r.report_description, r.date_time_created, sdc.sub_department_coordinator_id;
+
+
+    // `
     const sqlGetIssuesForSubDep = `SELECT 
     i.issue_id,
     i.title, 
@@ -15,27 +45,33 @@ const getReports = (req, res) => {
     ip.state, 
     ip.city, 
     ip.pincode,
-    -- Combine both issue media and report media into a single column
+    -- Combine both issue media and report media into separate columns
     COALESCE(GROUP_CONCAT(DISTINCT im.file_name SEPARATOR ', '), '') AS issue_media_files,
     COALESCE(GROUP_CONCAT(DISTINCT rm.file_name SEPARATOR ', '), '') AS report_media_files,
     r.title AS report_title,
     r.report_description,
     r.date_time_created AS report_created_at,
-    sdc.sub_department_coordinator_id  
+    sdc.sub_department_coordinator_id,
+    u.full_name AS sub_dep_coordinator_name,
+    u.phone_number AS sub_dep_coordinator_phone
 FROM issues i
 JOIN issues_pincode ip ON i.pincode = ip.pincode
 LEFT JOIN issues_media im ON i.issue_id = im.issue_id
 JOIN reports r ON i.issue_id = r.issue_id
 LEFT JOIN reports_media rm ON r.issue_id = rm.report_id  
 JOIN sub_department_coordinators sdc ON r.sub_branch_coordinator_id = sdc.sub_department_coordinator_id  
+JOIN users u ON sdc.sub_department_coordinator_id = u.email  -- Join users table to get name and phone number
 WHERE i.department_id = (
     SELECT department_id FROM department_coordinators WHERE dep_coordinator_id = ?
 ) 
 AND i.issue_status = 'completed'
-GROUP BY i.issue_id, r.title, r.report_description, r.date_time_created, sdc.sub_department_coordinator_id;
+GROUP BY i.issue_id, r.title, r.report_description, r.date_time_created, 
+         sdc.sub_department_coordinator_id, u.full_name, u.phone_number;
+
 
 
 `
+
 
 
     db.query(sqlGetIssuesForSubDep, [email], (error, results) => {

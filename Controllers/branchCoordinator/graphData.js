@@ -1,4 +1,5 @@
 const db = require('../../models/database');
+const { sendNotification } = require('../../socketData/manageSocket');
 
 const getReportsChartData = (req, res) => {
   console.log('gettign for reports chart data');
@@ -23,6 +24,7 @@ const getReportsChartData = (req, res) => {
         res.send({ error: "Database error" });
         return;
       }
+      // sendNotification('lekhwargokul84@gmail.com', 'welcome to analytics...')
       res.send({ status: true, results });
     });
   } catch (error) {

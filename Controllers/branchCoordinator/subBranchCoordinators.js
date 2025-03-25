@@ -4,11 +4,18 @@ const getSubBranchCoordinators = (req, res) => {
   const { email } = req.body
   console.log('email for get sub branch coordinators : ', email);
   try {
-    const sql = `SELECT sdc.*, u.full_name, dc.department_name  
+    const sql = `SELECT 
+    sdc.*, 
+    u.full_name, 
+    dc.department_name, 
+    GROUP_CONCAT(sdp.pincode ORDER BY sdp.pincode SEPARATOR ', ') AS pincodes
 FROM sub_department_coordinators sdc  
 JOIN department_coordinators dc ON sdc.department_id = dc.department_id  
 JOIN users u ON sdc.sub_department_coordinator_id = u.email  
-WHERE dc.dep_coordinator_id = ?;`
+LEFT JOIN sub_dep_coordinator_pincodes sdp ON sdc.sub_department_coordinator_id = sdp.sub_department_coordinator_id
+WHERE dc.dep_coordinator_id = ?
+GROUP BY sdc.sub_department_coordinator_id;
+`
 
     db.query(sql, [email], (error, results) => {
       if (error) {

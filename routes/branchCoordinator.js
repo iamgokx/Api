@@ -9,7 +9,8 @@ const { govAnnouncementMulter } = require('../middlewares/govAnnouncementMulter'
 const { govProposalMulter } = require('../middlewares/govProposalMulter')
 const { addProposal } = require('../Controllers/branchCoordinator/addGovProposal')
 const { getReports } = require('../Controllers/branchCoordinator/getReports')
-const { getReportsChartData, getCompletionChartData, getIssuePriorityChartData, getIssueStatusChartData } = require('../Controllers/branchCoordinator/graphData')
+const { getReportsChartData, getCompletionChartData, getIssuePriorityChartData, getIssueStatusChartData } = require('../Controllers/branchCoordinator/graphData');
+const { updateSubDepCoordName, updateSubDepCoordId, updateSubDepCoordPincodes, getSubDepCoordNameLogs, getSubDepPincodesLogs, getSubDepCoordEmailLogs } = require('../Controllers/branchCoordinator/editSubBranch');
 
 branchCoordinator.post(
   "/newAnnouncement",
@@ -46,6 +47,17 @@ branchCoordinator.post('/getCompletionChartData', getCompletionChartData)
 
 branchCoordinator.post('/getIssuePriorityChartData', getIssuePriorityChartData)
 
+
+branchCoordinator.post('/updateSubBranchCoordName', updateSubDepCoordName)
+branchCoordinator.post('/updateSubBranchCoordId', updateSubDepCoordId)
+branchCoordinator.post('/updateSubBranchCoordPincodes', updateSubDepCoordPincodes)
+
+
+
+
+branchCoordinator.post('/getSubDepCoordNameLogs', getSubDepCoordNameLogs)
+branchCoordinator.post('/getSubDepPincodesLogs', getSubDepPincodesLogs)
+branchCoordinator.post('/getSubDepCoordEmailLogs', getSubDepCoordEmailLogs)
 
 
 

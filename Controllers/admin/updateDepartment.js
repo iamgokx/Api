@@ -2,12 +2,16 @@ const db = require('../../models/database')
 const database = require('../../models/pool')
 const nodemailer = require('nodemailer');
 require('dotenv').config();
+const { logChange, clearLogs, getLogs } = require('./adminLogs')
+
+
 
 
 
 const updateDepartmentName = (req, res) => {
+
   try {
-    const { id, value } = req.body
+    const { id, value, oldValue } = req.body
     console.log('id, value: ', id, value);
 
     const checkDepExists = `select * from department_coordinators where department_name = ?`
@@ -33,7 +37,9 @@ const updateDepartmentName = (req, res) => {
           }
 
           if (results.affectedRows > 0) {
+
             console.log('updated name successfully');
+            logChange('DepNameUpdate', 'Dep name update', id, oldValue, value)
             res.send({ status: true, message: 'Updated department name successfully...' })
           } else {
             console.log('could not update dep name ');
@@ -52,7 +58,7 @@ const updateDepartmentName = (req, res) => {
 
 const updateDepCoordName = (req, res) => {
   try {
-    const { id, value } = req.body;
+    const { id, value, oldValue } = req.body;
     console.log('id, value:', id, value);
 
 
@@ -82,6 +88,9 @@ const updateDepCoordName = (req, res) => {
 
         if (results.affectedRows > 0) {
           console.log('Updated name successfully');
+          logChange('DepCoordNameUpdate', 'Dep coordinator name update', depCoordinatorId, oldValue, value)
+          const logs = getLogs()
+          console.log(logs);
           return res.send({ status: true, message: 'Updated department coordinator name successfully...' });
         } else {
           console.log('Could not update name');
@@ -95,7 +104,7 @@ const updateDepCoordName = (req, res) => {
   }
 };
 const updateDepCoordEmail = (req, res) => {
-  const { id, newEmail } = req.body;
+  const { id, newEmail, oldValue } = req.body;
 
   if (!newEmail) {
     return res.send({ status: false, message: 'New email cannot be empty...' });
@@ -114,7 +123,7 @@ const updateDepCoordEmail = (req, res) => {
         return res.send({ status: false, message: 'Something went wrong, please try again later...' });
       }
 
-    
+
       connection.query(`SELECT email FROM users WHERE email = ?`, [newEmail], (err, results) => {
         if (err) {
           connection.rollback(() => connection.release());
@@ -127,7 +136,7 @@ const updateDepCoordEmail = (req, res) => {
           return res.send({ status: false, message: 'This email is already in use. Please use a different email.' });
         }
 
-        
+
         connection.query(`SELECT dep_coordinator_id FROM department_coordinators WHERE department_id = ?`, [id], (err, results) => {
           if (err) {
             connection.rollback(() => connection.release());
@@ -143,7 +152,7 @@ const updateDepCoordEmail = (req, res) => {
           const oldEmail = results[0].dep_coordinator_id;
           console.log('oldEmail: ', oldEmail);
 
-          
+
           connection.query(`SELECT user_password FROM users WHERE email = ?`, [oldEmail], (err, results) => {
             if (err) {
               connection.rollback(() => connection.release());
@@ -166,7 +175,7 @@ const updateDepCoordEmail = (req, res) => {
                 return res.send({ status: false, message: 'Something went wrong, please try again later...' });
               }
 
-              
+
               connection.query(`UPDATE users SET email = ? WHERE email = ?`, [newEmail, oldEmail], (err, results) => {
                 if (err) {
                   connection.rollback(() => connection.release());
@@ -174,7 +183,7 @@ const updateDepCoordEmail = (req, res) => {
                   return res.send({ status: false, message: `Something went wrong, please try again later... (${err.sqlMessage})` });
                 }
 
-               
+
                 connection.query(`UPDATE department_coordinators SET dep_coordinator_id = ? WHERE department_id = ?`, [newEmail, id], (err, results) => {
                   if (err) {
                     connection.rollback(() => connection.release());
@@ -182,7 +191,7 @@ const updateDepCoordEmail = (req, res) => {
                     return res.send({ status: false, message: 'Something went wrong, please try again later...' });
                   }
 
-                 
+
                   connection.query(`SET FOREIGN_KEY_CHECKS=1`, (err) => {
                     if (err) {
                       connection.rollback(() => connection.release());
@@ -190,7 +199,7 @@ const updateDepCoordEmail = (req, res) => {
                       return res.send({ status: false, message: 'Something went wrong, please try again later...' });
                     }
 
-                  
+
                     connection.commit((err) => {
                       if (err) {
                         connection.rollback(() => connection.release());
@@ -203,6 +212,7 @@ const updateDepCoordEmail = (req, res) => {
 
                       sendEmail(newEmail, password)
                         .then(() => {
+                          logChange('DepCoordEmailUpdate', 'Dep coordinator email update', id, oldEmail, newEmail)
                           res.send({ status: true, message: 'Updated department coordinator email successfully and email sent!' });
                         })
                         .catch((err) => {
@@ -243,6 +253,58 @@ const sendEmail = async (toEmail, password) => {
 
 
 
+const getDepNameLogs = (req, res) => {
+
+  console.log('getting for dep name logs');
+  const logs = getLogs('DepNameUpdate')
+  console.log('logs: ', logs);
+  try {
+
+    if (logs) {
+      res.send({ status: true, logs })
+    }
+
+  } catch (error) {
+    console.log(error);
+    res.send({ status: false })
+  }
+}
+
+const getDepCoordNameLogs = (req, res) => {
+
+  console.log('getting for dep name logs');
+  const logs = getLogs('DepCoordNameUpdate')
+  console.log('logs: ', logs);
+  try {
+
+    if (logs) {
+      res.send({ status: true, logs })
+    }
+
+  } catch (error) {
+    console.log(error);
+    res.send({ status: false })
+  }
+}
+const getDepCoordEmailLogs = (req, res) => {
+
+  console.log('getting for dep name logs');
+  const logs = getLogs('DepCoordEmailUpdate')
+  console.log('logs: ', logs);
+  try {
+
+    if (logs) {
+      res.send({ status: true, logs })
+    }
+
+  } catch (error) {
+    console.log(error);
+    res.send({ status: false })
+  }
+}
+
+
+
 module.exports = {
-  updateDepartmentName, updateDepCoordName, updateDepCoordEmail
+  updateDepartmentName, updateDepCoordName, updateDepCoordEmail, getDepNameLogs, getDepCoordNameLogs, getDepCoordEmailLogs
 }

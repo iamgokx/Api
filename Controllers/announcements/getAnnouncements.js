@@ -1,4 +1,5 @@
-const db = require('../../models/database')
+const db = require('../../models/database');
+const { sendNotification } = require('../../socketData/manageSocket');
 
 
 
@@ -33,7 +34,9 @@ GROUP BY
 
       if (results.length > 0) {
         console.log(results);
+        
         res.send({ status: true, results })
+
       } else {
         console.log('no announcements found');
         res.send({ status: false })
@@ -91,6 +94,39 @@ GROUP BY a.announcement_id, dc.department_name, dc.state;`
   }
 }
 
+
+
+const getSubscriptionsAnnouncements = (req, res) => {
+  console.log('getting');
+
+  try {
+    const { email } = req.body
+
+    const sql = `SELECT ds.department_id
+FROM department_subscribers ds
+JOIN citizen_aadhar_number can ON ds.citizen_id = can.aadhar_number
+WHERE can.citizen_id = ?`
+
+    db.query(sql, [email], (errors, results) => {
+      if (errors) {
+        console.log(errors);
+        res.send({ status: false, message: 'something went wrong' })
+      }
+
+      if (results.length > 0) {
+        console.log(results);
+        res.send({ status: true, results })
+      } else {
+        console.log('no department subscriptions');
+      }
+    })
+
+
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 module.exports = {
-  getAnnouncementsForUser, getDetailedAnnouncement
+  getAnnouncementsForUser, getDetailedAnnouncement, getSubscriptionsAnnouncements
 }

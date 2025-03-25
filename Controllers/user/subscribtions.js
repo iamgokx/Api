@@ -40,7 +40,7 @@ const subscribe = (req, res) => {
     const { citizenId, department } = req.body;
     console.log('Request for subscription:', citizenId, department);
 
-    // Check if user is already a subscriber 
+
     const sql = `SELECT * 
     FROM department_subscribers
     WHERE citizen_id = ? AND department_id = (

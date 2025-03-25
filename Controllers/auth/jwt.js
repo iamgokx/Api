@@ -4,6 +4,7 @@ const { jwtDecode } = require('jwt-decode')
 const SECRET_KEY = process.env.JWT_SECRET_KEY
 const JWT_EXPIRATION = '7d'
 const db = require('../../models/database');
+const { sendNotification } = require('../../socketData/manageSocket')
 
 const generateJWT = (req, res) => {
 
@@ -52,6 +53,7 @@ WHERE u.email = ?;`
 
 
 const verifyJwt = (req, res) => {
+
   const { token } = req.body;
 
   if (!token) {
@@ -66,6 +68,8 @@ const verifyJwt = (req, res) => {
     console.log("Decoded Token:", decodedToken);
 
     const { email, name, userType } = decodedToken;
+    console.log('email: ', email);
+
 
 
     const sql = 'SELECT * FROM users WHERE email = ? AND full_name = ? AND user_type = ?';
@@ -77,6 +81,7 @@ const verifyJwt = (req, res) => {
 
       if (results.length > 0) {
         console.log("User found in database:", results);
+
         return res.json({ message: 'User JWT Valid', jwtStatus: true, user_type: results[0].user_type });
       } else {
         return res.status(401).json({ message: 'User JWT Invalid', jwtStatus: false });

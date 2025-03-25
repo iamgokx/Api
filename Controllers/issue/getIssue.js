@@ -1,6 +1,11 @@
-const db = require('../../models/database')
+const db = require('../../models/database');
+const { sendNotification } = require('../../socketData/manageSocket');
+
 
 const getIssues = (req, res) => {
+  const { email } = req.body;
+  console.log('email for home issues: ', email);
+
   try {
     const sqlGetIssues = `
 SELECT 
@@ -41,7 +46,8 @@ GROUP BY
       if (error) {
         console.log('error finding issues :  ', error);
       }
-      // console.log('Home results', results);
+
+      // sendNotification(email, `Welcome to spotfix ${email}`)
       res.json(results)
     })
   } catch (error) {
