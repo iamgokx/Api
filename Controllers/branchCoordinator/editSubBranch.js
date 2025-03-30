@@ -115,7 +115,6 @@ const updateSubDepCoordPincodes = (req, res) => {
 }
 
 
-
 const updateSubDepCoordId = async (req, res) => {
   console.log("Getting for updating sub-dep coordinator ID");
 
@@ -127,7 +126,7 @@ const updateSubDepCoordId = async (req, res) => {
   }
 
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    service: "gmail",
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.PASS,
@@ -139,7 +138,7 @@ const updateSubDepCoordId = async (req, res) => {
   try {
     await connection.beginTransaction();
 
-
+    // Check if new email already exists
     const [existingEmail] = await connection.query(
       "SELECT email FROM users WHERE email = ?",
       [newEmail]
@@ -152,7 +151,7 @@ const updateSubDepCoordId = async (req, res) => {
       return;
     }
 
-
+    // Fetch user password to send in email
     const [userData] = await connection.query(
       "SELECT user_password FROM users WHERE email = ?",
       [oldEmail]
@@ -163,12 +162,12 @@ const updateSubDepCoordId = async (req, res) => {
     }
 
     const userPassword = userData[0].user_password;
-    console.log('userPassword: ', userPassword);
+    console.log("userPassword: ", userPassword);
 
-
+    // Disable foreign key checks
     await connection.query("SET FOREIGN_KEY_CHECKS = 0");
 
-
+    // Update users table
     const [userResult] = await connection.query(
       "UPDATE users SET email = ? WHERE email = ?",
       [newEmail, oldEmail]
@@ -178,40 +177,47 @@ const updateSubDepCoordId = async (req, res) => {
       throw new Error("User email not found");
     }
 
-
+    // Update sub_department_coordinators table
     await connection.query(
       "UPDATE sub_department_coordinators SET sub_department_coordinator_id = ? WHERE sub_department_coordinator_id = ?",
       [newEmail, oldEmail]
     );
 
-
+    // Update sub_dep_coordinator_pincodes table
     await connection.query(
       "UPDATE sub_dep_coordinator_pincodes SET sub_department_coordinator_id = ? WHERE sub_department_coordinator_id = ?",
       [newEmail, oldEmail]
     );
 
+    // **Update reports table**
+    await connection.query(
+      "UPDATE reports SET sub_branch_coordinator_id = ? WHERE sub_branch_coordinator_id = ?",
+      [newEmail, oldEmail]
+    );
 
+    // Enable foreign key checks
     await connection.query("SET FOREIGN_KEY_CHECKS = 1");
 
+    // Commit transaction
     await connection.commit();
 
-
+    // Send email notification
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: newEmail,
-      subject: 'Your Account Credentials - SpotFix',
+      subject: "Your Account Credentials - SpotFix",
       text: `Dear User,
 
 Your account email has been successfully updated.
 
- New Login Details:
+New Login Details:
     Email: ${newEmail}
     Password: ${userPassword} (Please change it after logging in)
 
 For security reasons, we recommend changing your password after logging in.
 
 Thank you,
-The SpotFix Team`
+The SpotFix Team`,
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
@@ -221,9 +227,19 @@ The SpotFix Team`
         console.log("Email sent: " + info.response);
       }
     });
-    logChange('subDepId', 'Updated sub dep coordinator name', newEmail, oldEmail, newEmail)
 
-    res.json({ status: true, message: "Email updated successfully, notification sent" });
+    logChange(
+      "subDepId",
+      "Updated sub dep coordinator email",
+      newEmail,
+      oldEmail,
+      newEmail
+    );
+
+    res.json({
+      status: true,
+      message: "Email updated successfully, notification sent",
+    });
   } catch (error) {
     await connection.rollback();
     console.error("Error updating email:", error);

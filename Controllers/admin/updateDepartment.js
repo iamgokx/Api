@@ -103,133 +103,266 @@ const updateDepCoordName = (req, res) => {
     res.send({ status: false, message: 'Something went wrong, try again later...' });
   }
 };
+
 const updateDepCoordEmail = (req, res) => {
-  const { id, newEmail, oldValue } = req.body;
+  const { id, newEmail } = req.body;
 
   if (!newEmail) {
-    return res.send({ status: false, message: 'New email cannot be empty...' });
+    return res.send({ status: false, message: "New email cannot be empty..." });
   }
 
   database.getConnection((err, connection) => {
     if (err) {
-      console.error('Database connection failed:', err);
-      return res.send({ status: false, message: 'Something went wrong, please try again later...' });
+      console.error("Database connection failed:", err);
+      return res.send({
+        status: false,
+        message: "Something went wrong, please try again later...",
+      });
     }
 
     connection.beginTransaction((err) => {
       if (err) {
         connection.release();
-        console.error('Transaction error:', err);
-        return res.send({ status: false, message: 'Something went wrong, please try again later...' });
+        console.error("Transaction error:", err);
+        return res.send({
+          status: false,
+          message: "Something went wrong, please try again later...",
+        });
       }
 
-
-      connection.query(`SELECT email FROM users WHERE email = ?`, [newEmail], (err, results) => {
-        if (err) {
-          connection.rollback(() => connection.release());
-          console.error('Error checking email existence:', err);
-          return res.send({ status: false, message: 'Something went wrong, please try again later...' });
-        }
-
-        if (results.length > 0) {
-          connection.rollback(() => connection.release());
-          return res.send({ status: false, message: 'This email is already in use. Please use a different email.' });
-        }
-
-
-        connection.query(`SELECT dep_coordinator_id FROM department_coordinators WHERE department_id = ?`, [id], (err, results) => {
+      // Check if new email already exists in users
+      connection.query(
+        `SELECT email FROM users WHERE email = ?`,
+        [newEmail],
+        (err, results) => {
           if (err) {
             connection.rollback(() => connection.release());
-            console.error('Error fetching department:', err);
-            return res.send({ status: false, message: 'Something went wrong, please try again later...' });
+            console.error("Error checking email existence:", err);
+            return res.send({
+              status: false,
+              message: "Something went wrong, please try again later...",
+            });
           }
 
-          if (results.length === 0) {
+          if (results.length > 0) {
             connection.rollback(() => connection.release());
-            return res.send({ status: false, message: 'Department not found...' });
+            return res.send({
+              status: false,
+              message: "This email is already in use. Please use a different email.",
+            });
           }
 
-          const oldEmail = results[0].dep_coordinator_id;
-          console.log('oldEmail: ', oldEmail);
-
-
-          connection.query(`SELECT user_password FROM users WHERE email = ?`, [oldEmail], (err, results) => {
-            if (err) {
-              connection.rollback(() => connection.release());
-              console.error('Error fetching user password:', err);
-              return res.send({ status: false, message: 'Something went wrong, please try again later...' });
-            }
-
-            if (results.length === 0) {
-              connection.rollback(() => connection.release());
-              return res.send({ status: false, message: 'User not found with this email...' });
-            }
-
-            const password = results[0].user_password;
-            console.log('password: ', password);
-
-            connection.query(`SET FOREIGN_KEY_CHECKS=0`, (err) => {
+          // Fetch old email of the department coordinator
+          connection.query(
+            `SELECT dep_coordinator_id FROM department_coordinators WHERE department_id = ?`,
+            [id],
+            (err, results) => {
               if (err) {
                 connection.rollback(() => connection.release());
-                console.error('Error disabling foreign key checks:', err);
-                return res.send({ status: false, message: 'Something went wrong, please try again later...' });
+                console.error("Error fetching department coordinator:", err);
+                return res.send({
+                  status: false,
+                  message: "Something went wrong, please try again later...",
+                });
               }
 
+              if (results.length === 0) {
+                connection.rollback(() => connection.release());
+                return res.send({
+                  status: false,
+                  message: "Department not found...",
+                });
+              }
 
-              connection.query(`UPDATE users SET email = ? WHERE email = ?`, [newEmail, oldEmail], (err, results) => {
-                if (err) {
-                  connection.rollback(() => connection.release());
-                  console.error('Error updating users:', err.sqlMessage);
-                  return res.send({ status: false, message: `Something went wrong, please try again later... (${err.sqlMessage})` });
-                }
+              const oldEmail = results[0].dep_coordinator_id;
 
-
-                connection.query(`UPDATE department_coordinators SET dep_coordinator_id = ? WHERE department_id = ?`, [newEmail, id], (err, results) => {
+              // Fetch password from users table (to resend in email)
+              connection.query(
+                `SELECT user_password FROM users WHERE email = ?`,
+                [oldEmail],
+                (err, results) => {
                   if (err) {
                     connection.rollback(() => connection.release());
-                    console.error('Error updating department_coordinators:', err);
-                    return res.send({ status: false, message: 'Something went wrong, please try again later...' });
+                    console.error("Error fetching user password:", err);
+                    return res.send({
+                      status: false,
+                      message: "Something went wrong, please try again later...",
+                    });
                   }
 
+                  if (results.length === 0) {
+                    connection.rollback(() => connection.release());
+                    return res.send({
+                      status: false,
+                      message: "User not found with this email...",
+                    });
+                  }
 
-                  connection.query(`SET FOREIGN_KEY_CHECKS=1`, (err) => {
+                  const password = results[0].user_password;
+
+                  // Disable foreign key checks
+                  connection.query(`SET FOREIGN_KEY_CHECKS=0`, (err) => {
                     if (err) {
                       connection.rollback(() => connection.release());
-                      console.error('Error enabling foreign key checks:', err);
-                      return res.send({ status: false, message: 'Something went wrong, please try again later...' });
+                      console.error("Error disabling foreign key checks:", err);
+                      return res.send({
+                        status: false,
+                        message: "Something went wrong, please try again later...",
+                      });
                     }
 
+                    // Update email in users table
+                    connection.query(
+                      `UPDATE users SET email = ? WHERE email = ?`,
+                      [newEmail, oldEmail],
+                      (err) => {
+                        if (err) {
+                          connection.rollback(() => connection.release());
+                          console.error("Error updating users:", err.sqlMessage);
+                          return res.send({
+                            status: false,
+                            message: `Something went wrong, please try again later... (${err.sqlMessage})`,
+                          });
+                        }
 
-                    connection.commit((err) => {
-                      if (err) {
-                        connection.rollback(() => connection.release());
-                        console.error('Transaction commit error:', err);
-                        return res.send({ status: false, message: 'Something went wrong, please try again later...' });
+                        // Update department_coordinators table
+                        connection.query(
+                          `UPDATE department_coordinators SET dep_coordinator_id = ? WHERE department_id = ?`,
+                          [newEmail, id],
+                          (err) => {
+                            if (err) {
+                              connection.rollback(() => connection.release());
+                              console.error(
+                                "Error updating department_coordinators:",
+                                err
+                              );
+                              return res.send({
+                                status: false,
+                                message: "Something went wrong, please try again later...",
+                              });
+                            }
+
+                            // Update email in announcements table
+                            connection.query(
+                              `UPDATE announcements SET dep_coordinator_id = ? WHERE dep_coordinator_id = ?`,
+                              [newEmail, oldEmail],
+                              (err) => {
+                                if (err) {
+                                  connection.rollback(() => connection.release());
+                                  console.error("Error updating announcements:", err);
+                                  return res.send({
+                                    status: false,
+                                    message: "Something went wrong, please try again later...",
+                                  });
+                                }
+
+                                // Update email in gov_proposals table
+                                connection.query(
+                                  `UPDATE gov_proposals SET dep_coordinator_id = ? WHERE dep_coordinator_id = ?`,
+                                  [newEmail, oldEmail],
+                                  (err) => {
+                                    if (err) {
+                                      connection.rollback(() =>
+                                        connection.release()
+                                      );
+                                      console.error(
+                                        "Error updating gov_proposals:",
+                                        err
+                                      );
+                                      return res.send({
+                                        status: false,
+                                        message:
+                                          "Something went wrong, please try again later...",
+                                      });
+                                    }
+
+                                    // Enable foreign key checks again
+                                    connection.query(
+                                      `SET FOREIGN_KEY_CHECKS=1`,
+                                      (err) => {
+                                        if (err) {
+                                          connection.rollback(() =>
+                                            connection.release()
+                                          );
+                                          console.error(
+                                            "Error enabling foreign key checks:",
+                                            err
+                                          );
+                                          return res.send({
+                                            status: false,
+                                            message:
+                                              "Something went wrong, please try again later...",
+                                          });
+                                        }
+
+                                        // Commit transaction
+                                        connection.commit((err) => {
+                                          if (err) {
+                                            connection.rollback(() =>
+                                              connection.release()
+                                            );
+                                            console.error(
+                                              "Transaction commit error:",
+                                              err
+                                            );
+                                            return res.send({
+                                              status: false,
+                                              message:
+                                                "Something went wrong, please try again later...",
+                                            });
+                                          }
+
+                                          connection.release();
+
+                                          // Send email notification
+                                          sendEmail(newEmail, password)
+                                            .then(() => {
+                                              logChange(
+                                                "DepCoordEmailUpdate",
+                                                "Dep coordinator email update",
+                                                id,
+                                                oldEmail,
+                                                newEmail
+                                              );
+                                              res.send({
+                                                status: true,
+                                                message:
+                                                  "Updated department coordinator email successfully and email sent!",
+                                              });
+                                            })
+                                            .catch((err) => {
+                                              console.error(
+                                                "Error sending email:",
+                                                err
+                                              );
+                                              res.send({
+                                                status: false,
+                                                message:
+                                                  "Email update successful, but failed to send email notification.",
+                                              });
+                                            });
+                                        });
+                                      }
+                                    );
+                                  }
+                                );
+                              }
+                            );
+                          }
+                        );
                       }
-
-                      connection.release();
-
-
-                      sendEmail(newEmail, password)
-                        .then(() => {
-                          logChange('DepCoordEmailUpdate', 'Dep coordinator email update', id, oldEmail, newEmail)
-                          res.send({ status: true, message: 'Updated department coordinator email successfully and email sent!' });
-                        })
-                        .catch((err) => {
-                          console.error('Error sending email:', err);
-                          res.send({ status: false, message: 'Email update successful, but failed to send email notification.' });
-                        });
-                    });
+                    );
                   });
-                });
-              });
-            });
-          });
-        });
-      });
+                }
+              );
+            }
+          );
+        }
+      );
     });
   });
 };
+
 
 
 const sendEmail = async (toEmail, password) => {

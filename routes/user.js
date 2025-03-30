@@ -16,6 +16,7 @@ const { setNewUserPassword } = require('../Controllers/user/newPassword')
 const { getPendingFeedback, addFeedback, getRepliedFeedback } = require('../Controllers/user/feedback.js');
 const { getProfileIssueSuggestions, getProfileCitizenProposalSuggestions, getProfileGovProposalSuggestions } = require('../Controllers/user/suggestions.js');
 const { deleteAccount } = require('../Controllers/user/deleteAccount.js');
+const { reportProblem } = require('../Controllers/user/reportProblem.js');
 router.post('/getUser', userLogIn);
 router.get('/otp', userRequestsOtp);
 router.get('/otp/verify', verifyOtp);
@@ -45,6 +46,8 @@ router.post('/getProfileCitizenProposalSuggestions', getProfileCitizenProposalSu
 router.post('/getProfileGovProposalSuggestions', getProfileGovProposalSuggestions)
 
 
-router.post('/deleteAccount',deleteAccount)
+router.post('/deleteAccount', deleteAccount)
+
+router.post('/reportProblem', reportProblem)
 
 module.exports = { router }

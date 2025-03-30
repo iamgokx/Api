@@ -84,7 +84,8 @@ const verifyJwt = (req, res) => {
 
         return res.json({ message: 'User JWT Valid', jwtStatus: true, user_type: results[0].user_type });
       } else {
-        return res.status(401).json({ message: 'User JWT Invalid', jwtStatus: false });
+        console.log('could not find user');
+        return res.json({ message: 'User JWT Invalid', jwtStatus: false });
       }
     });
   } catch (error) {

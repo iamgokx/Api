@@ -1,4 +1,6 @@
-const db = require('../../models/database')
+const db = require('../../models/database');
+const { sendNotification } = require('../../socketData/manageSocket');
+const { format } = require("date-fns");
 
 const updateIssue = (req, res) => {
   try {
@@ -36,6 +38,17 @@ const updateIssue = (req, res) => {
 
         if (updateResults.affectedRows > 0) {
           console.log("Updated status successfully");
+
+
+          db.query('select citizen_id, title from issues where issue_id = ? ', [issueId], (error, results) => {
+            if (error) {
+              console.log(error);
+            }
+
+            console.log(results[0].citizen_id);
+            sendNotification(results[0].citizen_id, `Your issue's (${results[0].title}) status has been updated to "${status}" and the issue priority is at "${priority}" `)
+          })
+
           res.send({ status: true, message: "Updated issue successfully" });
         } else {
           res.status(400).send({ status: false, message: "No changes made" });
@@ -48,13 +61,18 @@ const updateIssue = (req, res) => {
   }
 };
 
+const getFormattedDate = (date) => {
+  return format(new Date(date), "MMMM d, yyyy");
+};
+
+
 const setEstimateCompleteTime = (req, res) => {
 
-
-  const { issueid, date } = req.body
-  console.log('issueId and date  ', issueid, date);
-
   try {
+    console.log('this function ran');
+
+    const { issueid, date } = req.body
+    console.log('issueId and dateeeeeeeeeee  ', issueid, date);
 
     const sql = `update issues set estimate_complete_time = ? where issue_id = ?`
 
@@ -65,6 +83,19 @@ const setEstimateCompleteTime = (req, res) => {
       }
 
       if (results.affectedRows > 0) {
+        db.query('select citizen_id, title,estimate_complete_time from issues where issue_id = ? ', [issueid], (error, results) => {
+          if (error) {
+            console.log(error);
+          }
+          console.log(); console.log(); console.log(); console.log();
+          console.log('check this data', results[0].citizen_id);
+          const date = results[0].estimate_complete_time
+          const formattedDate = getFormattedDate(date)
+          console.log('this is the date, ', formattedDate);
+          sendNotification(results[0].citizen_id, `Your issue (${results[0].title}) will be resolved by ${formattedDate}.`)
+        })
+
+        console.log('updated the estimate completion time');
         res.send({ status: true, message: 'Successfully updated estimate completion time...' })
       } else {
         console.log('could not update estimate completion time');
