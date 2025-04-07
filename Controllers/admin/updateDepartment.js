@@ -315,6 +315,8 @@ const updateDepCoordEmail = (req, res) => {
                                           connection.release();
 
                                           // Send email notification
+
+                                          //TODO check y the email didnt go through 
                                           sendEmail(newEmail, password)
                                             .then(() => {
                                               logChange(
