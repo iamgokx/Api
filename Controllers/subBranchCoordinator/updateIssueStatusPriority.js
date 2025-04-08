@@ -47,6 +47,10 @@ const updateIssue = (req, res) => {
 
             console.log(results[0].citizen_id);
             sendNotification(results[0].citizen_id, `Your issue's (${results[0].title}) status has been updated to "${status}" and the issue priority is at "${priority}" `)
+
+            if (status == 'completed') {
+              sendNotification(results[0].citizen_id, `Your issue (${results[0].title}) has been resolved , the feedback form is now avalilabe in your feedback form section, kindly give you freedback if your satisfied with the solution or not.`)
+            }
           })
 
           res.send({ status: true, message: "Updated issue successfully" });

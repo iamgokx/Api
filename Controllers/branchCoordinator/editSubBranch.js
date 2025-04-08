@@ -310,7 +310,60 @@ const getSubDepCoordEmailLogs = (req, res) => {
   }
 }
 
+const getSubDepCoordPhoneLogs = (req, res) => {
 
+  console.log('getting for dep name logs');
+  const logs = getLogs('subDepPhoneNumber')
+  console.log('logs: ', logs);
+  try {
+
+    if (logs) {
+      res.send({ status: true, logs })
+    }
+
+  } catch (error) {
+    console.log(error);
+    res.send({ status: false })
+  }
+}
+
+
+
+const updateSubDepCoordPhoneNumber = (req, res) => {
+  console.log('getting for updating the sub dep coord phone number');
+
+  try {
+    const { newPhone, email, oldValue } = req.body
+    console.log('newPhone, email, oldValue : ', newPhone, email, oldValue);
+
+    const updatePhone = `update users set phone_number = ? where email = ?`
+
+    db.query(updatePhone, [newPhone, email], (error, results) => {
+      if (error) {
+        console.log(error);
+      }
+
+      if (results.affectedRows > 0) {
+
+        logChange(
+          "subDepPhoneNumber",
+          "Updated sub dep coordinator phone number",
+          email,
+          oldValue,
+          newPhone
+        );
+
+        res.json({
+          status: true,
+          message: "Phone number updated successfully",
+        });
+      }
+    })
+
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 
 
@@ -319,7 +372,7 @@ const getSubDepCoordEmailLogs = (req, res) => {
 
 
 module.exports = {
-  updateSubDepCoordId, updateSubDepCoordName, updateSubDepCoordPincodes, getSubDepCoordNameLogs, getSubDepPincodesLogs, getSubDepCoordEmailLogs
+  updateSubDepCoordId, updateSubDepCoordName, updateSubDepCoordPincodes, getSubDepCoordNameLogs, getSubDepPincodesLogs, getSubDepCoordEmailLogs, updateSubDepCoordPhoneNumber, getSubDepCoordPhoneLogs
 }
 
 

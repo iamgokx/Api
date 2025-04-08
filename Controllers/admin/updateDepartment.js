@@ -438,8 +438,50 @@ const getDepCoordEmailLogs = (req, res) => {
   }
 }
 
+const getDepCoordPhoneLogs = (req, res) => {
+
+  console.log('getting for dep phone number logs');
+  const logs = getLogs('DepPhoneUpdate')
+  console.log('logs: ', logs);
+  try {
+
+    if (logs) {
+      res.send({ status: true, logs })
+    }
+
+  } catch (error) {
+    console.log(error);
+    res.send({ status: false })
+  }
+}
+
+
+
+
+const updateDepPhoneNumber = (req, res) => {
+  console.log('getting for phone number');
+  const { id, newPhone, oldValue } = req.body
+  console.log('id, newPhone, oldValue: ', id, newPhone, oldValue);
+
+  try {
+    const sqlupdateUserPhone = `update users set phone_number = ? where email = ? `
+
+    db.query(sqlupdateUserPhone, [newPhone, id], (error, results) => {
+      if (error) {
+        console.log(error);
+      }
+      if (results.affectedRows > 0) {
+        console.log('updated dep coord phone number');
+        logChange('DepPhoneUpdate', 'Dep phone number update', id, oldValue, newPhone)
+        res.send({ status: true, message: "Updated department coordinators phone number successfully" })
+      }
+    })
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 
 module.exports = {
-  updateDepartmentName, updateDepCoordName, updateDepCoordEmail, getDepNameLogs, getDepCoordNameLogs, getDepCoordEmailLogs
+  updateDepartmentName, updateDepCoordName, updateDepCoordEmail, getDepNameLogs, getDepCoordNameLogs, getDepCoordEmailLogs, updateDepPhoneNumber, getDepCoordPhoneLogs
 }

@@ -8,7 +8,7 @@ const { getDepartmentCoordinators } = require('../Controllers/admin/getDepartmen
 const { getSubDepartmentCoordinators } = require('../Controllers/admin/getSubDepartmetnCoordinators')
 const { addBranchCoordinator } = require('../Controllers/admin/addBranchCoordinator')
 const { getReportsChartData, getIssueStatusChartData, getCompletionChartData, getIssuePriorityChartData } = require('../Controllers/admin/graphsData')
-const { updateDepartmentName, updateDepCoordName, updateDepCoordEmail, getDepNameLogs, getDepCoordNameLogs, getDepCoordEmailLogs } = require('../Controllers/admin/updateDepartment')
+const { updateDepartmentName, updateDepCoordName, updateDepCoordEmail, getDepNameLogs, getDepCoordNameLogs, getDepCoordEmailLogs, updateDepPhoneNumber, getDepCoordPhoneLogs } = require('../Controllers/admin/updateDepartment')
 const { approveProposal, rejectProposal } = require('../Controllers/admin/proposals')
 const adminRouter = express.Router()
 
@@ -30,6 +30,7 @@ adminRouter.post('/getIssuePriorityChartData', getIssuePriorityChartData)
 adminRouter.post('/updateDepName', updateDepartmentName)
 adminRouter.post('/updateDepCoordName', updateDepCoordName)
 adminRouter.post('/updateDepCoordEmail', updateDepCoordEmail)
+adminRouter.post('/updateDepPhoneNumber', updateDepPhoneNumber)
 
 adminRouter.post('/approveProposal', approveProposal)
 adminRouter.post('/rejectProposal', rejectProposal)
@@ -37,6 +38,7 @@ adminRouter.post('/rejectProposal', rejectProposal)
 adminRouter.post('/getDepNameLogs', getDepNameLogs)
 adminRouter.post('/getDepCoordNameLogs', getDepCoordNameLogs)
 adminRouter.post('/getDepCoordEmailLogs', getDepCoordEmailLogs)
+adminRouter.post('/getDepCoordPhoneLogs', getDepCoordPhoneLogs)
 module.exports = {
   adminRouter
 }

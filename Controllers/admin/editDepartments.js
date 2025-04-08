@@ -5,7 +5,16 @@ const editDepartmentData = (req, res) => {
   console.log(department);
   try {
 
-    const sql = `SELECT dc.*, u.full_name
+    const sql = `SELECT 
+  dc.department_id,
+  dc.dep_coordinator_id,
+  dc.department_name,
+  dc.state,
+  u.full_name,
+  u.email,
+  u.user_password,
+  u.phone_number,
+  u.user_type
 FROM department_coordinators dc
 JOIN users u ON dc.dep_coordinator_id = u.email
 WHERE dc.department_name = ?`
@@ -15,6 +24,7 @@ WHERE dc.department_name = ?`
       }
 
       if (results.length > 0) {
+        console.log('edit dep details :  ', results);
         res.send(results)
       }
     })

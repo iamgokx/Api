@@ -92,4 +92,6 @@ const deleteIssue = (req, res) => {
   }
 };
 
+
+//TODO also delete reports and feedback tht is connected 
 module.exports = { deleteIssue };
